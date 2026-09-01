@@ -1,0 +1,16 @@
+services:
+  valorynn:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      VALORYNN_SECRET_KEY: ${VALORYNN_SECRET_KEY:?Set VALORYNN_SECRET_KEY in .env}
+      VALORYNN_DATABASE_PATH: /data/valorynn.sqlite3
+      VALORYNN_COOKIE_SECURE: "false"
+      VALORYNN_ENV: development
+    volumes:
+      - valorynn_data:/data
+    restart: unless-stopped
+
+volumes:
+  valorynn_data:

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Valorynn authorized application security assessment platform">
+  <title>{% block title %}Valorynn{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">VALORYNN <span>Defend what you make</span></a>
+    {% if user %}
+    <nav aria-label="Main navigation">
+      <a href="/dashboard">My applications</a>
+      <a href="/applications/new" class="button small">Add application</a>
+      <form action="/signout" method="post" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="link-button" type="submit">Sign out</button></form>
+    </nav>
+    {% endif %}
+  </header>
+  <main class="page">
+    {% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
+    {% if message %}<div class="notice">{{ message }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer><span>Valorynn assesses only targets you own or are authorized to test.</span><span>Scores are risk indicators, not proof of security.</span></footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

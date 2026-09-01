@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Assessment in progress · Valorynn{% endblock %}
+{% block content %}
+<section class="progress-screen card"><p class="eyebrow">CONTROLLED ASSESSMENT</p><div class="radar" aria-hidden="true"></div><h1>Reviewing {{ scan.application_name }}</h1><p>Checking transport, headers, cookies, exposed indicators{% if scan.model_version %}, and available source evidence{% endif %}. This page updates automatically.</p><p id="scan-status" class="muted">Status: {{ scan.status }}</p><a class="secondary button" href="/applications/{{ scan.application_id }}">Return to application</a></section>
+{% endblock %}
+{% block scripts %}<script>const poll=async()=>{const r=await fetch('/scans/{{ scan.id }}/status');const d=await r.json();document.querySelector('#scan-status').textContent='Status: '+d.status;if(d.result_url){location.href=d.result_url}else if(d.status==='failed'){document.querySelector('#scan-status').textContent='The assessment could not complete: '+(d.error||'Unknown error.');clearInterval(timer)}};const timer=setInterval(poll,1500);poll();</script>{% endblock %}

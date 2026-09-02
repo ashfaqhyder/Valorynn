@@ -1,9 +1,142 @@
 {% extends "base.html" %}
-{% block title %}{{ application.name }} · Valorynn{% endblock %}
+
+{% block title %}{{ application.name }} — Valorynn{% endblock %}
+
 {% block content %}
-<a class="back" href="/dashboard">← My applications</a>
-<section class="page-title application-heading"><div><p class="eyebrow">AUTHORIZED TARGET</p><h1>{{ application.name }}</h1><p class="url">{{ application.target_url }}</p>{% if application.repository_url %}<p class="muted">Repository reference: {{ application.repository_url }}</p>{% endif %}</div><form method="post" action="/applications/{{ application.id }}/delete" onsubmit="return confirm('Delete this application and all of its scan history?')"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="danger outline" type="submit">Delete application</button></form></section>
-<section class="scan-callout card"><div><h2>Run a controlled scan</h2><p>One bounded request checks this approved target. Add a ZIP if you want an in-memory source review; it will be discarded when the scan is complete.</p></div><form method="post" action="/applications/{{ application.id }}/scan" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label class="check"><input type="checkbox" name="authorization_confirmation" value="authorized" required> I own this application or have explicit authorization to assess it.</label><label>Source ZIP for this scan <span class="hint">optional</span><input type="file" name="source_zip" accept=".zip"></label><button type="submit">Start authorized scan</button></form></section>
-<section class="section-heading"><div><h2>Scan history</h2><p>Delete records you no longer need. Your history remains private to this account.</p></div>{% set done = scans|selectattr('status', 'equalto', 'completed')|list %}{% if done|length >= 2 %}<a class="button secondary" href="/applications/{{ application.id }}/compare">Compare latest scans</a>{% endif %}</section>
-{% if scans %}<div class="history-list">{% for scan in scans %}<article class="card history-row"><div><b class="pill {{ scan.status }}">{{ scan.status }}</b><span class="muted">Authorized {{ scan.authorization_confirmed_at }}</span></div><div>{% if scan.status == 'completed' %}<strong class="history-score">{{ scan.score }}/100</strong><span class="risk {{ scan.risk_level|lower }}">{{ scan.risk_level }}</span>{% elif scan.status == 'failed' %}<span class="danger-text">{{ scan.error_message }}</span>{% else %}<span>Assessment in progress…</span>{% endif %}</div><div class="row-actions">{% if scan.status == 'completed' %}<a href="/scans/{{ scan.id }}">Open results</a>{% else %}<a href="/scans/{{ scan.id }}/progress">View progress</a>{% endif %}<form method="post" action="/scans/{{ scan.id }}/delete" onsubmit="return confirm('Delete this scan and its findings?')"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="link-button danger-text" type="submit">Delete</button></form></div></article>{% endfor %}</div>{% else %}<section class="empty-state card"><p>No scans yet. Confirm authorization to begin your first controlled assessment.</p></section>{% endif %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ application.name }}</h1>
+    <p class="page-subtitle">
+      Target: <a href="{{ application.target_url }}" target="_blank" rel="noopener" class="font-mono" style="color: var(--primary);">{{ application.target_url }}</a>
+    </p>
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    {% if scans|length >= 2 %}
+    <a href="/applications/{{ application.id }}/compare" class="btn btn-secondary btn-sm">📊 Compare Scans</a>
+    {% endif %}
+    <form action="/applications/{{ application.id }}/delete" method="post" onsubmit="return confirm('Delete this target application and all its scan history?');" style="display: inline;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-danger btn-sm" type="submit">Delete Target</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid-3" style="grid-template-columns: 2fr 1fr;">
+  <div>
+    <div class="card" style="border-top: 4px solid var(--primary);">
+      <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Run Authorized Security Scan</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Before starting an assessment, you must explicitly confirm ownership or written authorization to test this target URL.
+      </p>
+
+      <form method="post" action="/applications/{{ application.id }}/scan" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <div style="padding: 1rem; background: var(--surface-glass); border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+            <input type="checkbox" name="authorization_confirmation" value="authorized" required style="margin-top: 0.25rem; accent-color: var(--primary);">
+            <span>
+              <strong>Mandatory Confirmation:</strong> I confirm that I own <code>{{ application.target_url }}</code> or possess explicit written authorization from the owner to conduct low-impact security assessments on this target.
+            </span>
+          </label>
+        </div>
+
+        <div class="form-group" style="padding: 1rem; background: var(--surface-glass); border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
+          <label for="source_zip" class="form-label" style="margin-bottom: 0.25rem;">Optional Source Review (.ZIP)</label>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Supply a project archive (max 5 MB) for in-memory secret and code checks for this scan.</p>
+          <input type="file" id="source_zip" name="source_zip" accept=".zip" class="form-control" style="padding: 0.4rem;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; margin-top: 1rem;">
+          🛡️ Start Security Scan Now
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Target Metadata</h3>
+      <div style="font-size: 0.875rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.75rem;">
+        <div>
+          <strong style="color: var(--text-main);">Repository:</strong><br>
+          {% if application.repository_url %}
+          <a href="{{ application.repository_url }}" target="_blank" rel="noopener" style="color: var(--primary);">{{ application.repository_url }}</a>
+          {% else %}
+          <span style="color: var(--text-subtle);">None specified</span>
+          {% endif %}
+        </div>
+        <div>
+          <strong style="color: var(--text-main);">Source Archive:</strong><br>
+          {{ application.source_filename or 'No archive uploaded' }}
+        </div>
+        <div>
+          <strong style="color: var(--text-main);">Created:</strong><br>
+          {{ application.created_at }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem;">Assessment History</h2>
+
+  {% if scans %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Scan ID</th>
+          <th>Status</th>
+          <th>Score</th>
+          <th>Risk Level</th>
+          <th>Completed</th>
+          <th style="text-align: right;">Report & Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scan in scans %}
+        <tr>
+          <td><span class="font-mono">#{{ scan.id }}</span></td>
+          <td>
+            {% if scan.status == 'completed' %}
+            <span style="color: var(--risk-low); font-weight: 600;">✓ Completed</span>
+            {% elif scan.status == 'running' or scan.status == 'queued' %}
+            <span style="color: var(--risk-medium); font-weight: 600;">⏳ {{ scan.status.capitalize() }}</span>
+            {% else %}
+            <span style="color: var(--risk-critical); font-weight: 600;">❌ {{ scan.status.capitalize() }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if scan.score is not none %}
+            <span style="font-weight: 700; font-size: 1.1rem;">{{ scan.score }} / 100</span>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if scan.risk_level %}
+            <span class="severity-pill {{ scan.risk_level.lower() }}">{{ scan.risk_level }}</span>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td><span style="font-size: 0.85rem; color: var(--text-muted);">{{ scan.completed_at or scan.authorization_confirmed_at }}</span></td>
+          <td style="text-align: right;">
+            {% if scan.status == 'completed' %}
+            <a href="/scans/{{ scan.id }}" class="btn btn-secondary btn-sm">View Findings</a>
+            {% else %}
+            <a href="/scans/{{ scan.id }}/progress" class="btn btn-secondary btn-sm">Check Status</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color: var(--text-muted); padding: 1rem 0;">No security scans have been recorded for this application target yet.</p>
+  {% endif %}
+</div>
 {% endblock %}

@@ -4,26 +4,71 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Valorynn authorized application security assessment platform">
-  <title>{% block title %}Valorynn{% endblock %}</title>
+  <title>{% block title %}Valorynn — Defend what you make{% endblock %}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="/">VALORYNN <span>Defend what you make</span></a>
-    {% if user %}
-    <nav aria-label="Main navigation">
-      <a href="/dashboard">My applications</a>
-      <a href="/applications/new" class="button small">Add application</a>
-      <form action="/signout" method="post" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="link-button" type="submit">Sign out</button></form>
-    </nav>
+  <nav class="navbar">
+    <a class="nav-brand" href="/">
+      <div class="shield-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span>VALORYNN</span>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 1.25rem;">
+      {% if user %}
+      <div class="user-badge">
+        <span>{{ user.name }}</span>
+        <span class="user-type-tag">{{ user.account_type }}</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+        <li><a href="/applications/new" class="btn btn-primary btn-sm">+ Add Target</a></li>
+        <li>
+          <form action="/signout" method="post" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="btn btn-secondary btn-sm" type="submit">Sign Out</button>
+          </form>
+        </li>
+      </ul>
+      {% else %}
+      <div style="display: flex; gap: 0.75rem;">
+        <a href="/signin" class="btn btn-secondary btn-sm">Sign In</a>
+        <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main class="main-container">
+    {% if error %}
+    <div class="card" style="border-left: 4px solid var(--risk-critical); background: var(--risk-critical-bg);" role="alert">
+      <div style="display: flex; align-items: center; gap: 0.75rem; color: var(--risk-critical); font-weight: 600;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ error }}</span>
+      </div>
+    </div>
     {% endif %}
-  </header>
-  <main class="page">
-    {% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
-    {% if message %}<div class="notice">{{ message }}</div>{% endif %}
+
+    {% if message %}
+    <div class="card" style="border-left: 4px solid var(--primary); background: var(--primary-glow);">
+      <div style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-main); font-weight: 500;">
+        <span>{{ message }}</span>
+      </div>
+    </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
   </main>
-  <footer><span>Valorynn assesses only targets you own or are authorized to test.</span><span>Scores are risk indicators, not proof of security.</span></footer>
+
+  <footer class="footer">
+    <p>Valorynn assesses authorized target applications with explainable scoring and evidence-based findings.</p>
+    <p style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-subtle);">Scores are risk indicators, not guarantees of total security.</p>
+  </footer>
+
   {% block scripts %}{% endblock %}
 </body>
 </html>

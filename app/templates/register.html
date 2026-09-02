@@ -1,8 +1,73 @@
 {% extends "base.html" %}
-{% block title %}Create account · Valorynn{% endblock %}
+
+{% block title %}Create Account — Valorynn{% endblock %}
+
 {% block content %}
-<section class="auth-layout">
-  <div class="hero-copy"><p class="eyebrow">PRIVATE BY DEFAULT</p><h1>Build more boldly.</h1><p>Your application records, scans, findings, and reports stay visible only to your account. Start with an authorized target.</p></div>
-  <form class="card auth-form" method="post" action="/register"><h2>Create your account</h2><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label>Name<input name="name" autocomplete="name" maxlength="120" required></label><label>Email<input type="email" name="email" autocomplete="email" maxlength="254" required></label><label>Password <span class="hint">At least 10 characters</span><input type="password" name="password" autocomplete="new-password" minlength="10" required></label><label>Account type<select name="account_type" required><option value="student">Student</option><option value="developer">Individual / Developer</option><option value="organization">Organization</option></select></label><label>Institution <span class="hint">optional</span><input name="institution" maxlength="160"></label><label>Course or year <span class="hint">optional</span><input name="course_year" maxlength="80"></label><button type="submit">Create private account</button><p class="muted">Already have an account? <a href="/signin">Sign in</a>.</p></form>
-</section>
+<div class="auth-wrapper">
+  <div class="card auth-card pulse-glow" style="max-width: 500px;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div class="shield-icon" style="width: 56px; height: 56px; margin: 0 auto 1.25rem; border-radius: 14px; font-size: 1.75rem; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: var(--shadow-glow);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h1 style="font-size: 1.65rem; font-weight: 700; letter-spacing: -0.02em;">Create Your Private Account</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Assess authorized targets with explainable scoring</p>
+    </div>
+
+    <form method="post" action="/register" class="form-centered">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name or Username</label>
+        <input type="text" id="name" name="name" required autofocus class="form-control" placeholder="Alex Rivera">
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" id="email" name="email" required class="form-control" placeholder="alex@company.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password (min. 10 characters)</label>
+        <input type="password" id="password" name="password" minlength="10" required class="form-control" placeholder="••••••••••••">
+        <p style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.35rem; text-align: center;">Stored securely using scrypt salted hashing.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="account_type" class="form-label">Account Type</label>
+        <select id="account_type" name="account_type" required class="form-control" onchange="toggleStudentFields(this.value)" style="text-align-last: center;">
+          <option value="student">Student</option>
+          <option value="developer">Individual / Developer</option>
+          <option value="organization">Organization</option>
+        </select>
+      </div>
+
+      <div id="studentFields">
+        <div class="form-group">
+          <label for="institution" class="form-label">Institution / University (Optional)</label>
+          <input type="text" id="institution" name="institution" class="form-control" placeholder="University of Technology">
+        </div>
+
+        <div class="form-group">
+          <label for="course_year" class="form-label">Course / Year (Optional)</label>
+          <input type="text" id="course_year" name="course_year" class="form-control" placeholder="Computer Science - Year 3">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
+        Complete Registration →
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.75rem; font-size: 0.9rem; color: var(--text-muted);">
+      Already have an account? <a href="/signin" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign in here</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleStudentFields(val) {
+    const fields = document.getElementById('studentFields');
+    fields.style.display = (val === 'student') ? 'block' : 'none';
+  }
+</script>
 {% endblock %}

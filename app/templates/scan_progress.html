@@ -1,6 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Assessment in progress · Valorynn{% endblock %}
+
+{% block title %}Scanning Target — Valorynn{% endblock %}
+
 {% block content %}
-<section class="progress-screen card"><p class="eyebrow">CONTROLLED ASSESSMENT</p><div class="radar" aria-hidden="true"></div><h1>Reviewing {{ scan.application_name }}</h1><p>Checking transport, headers, cookies, exposed indicators{% if scan.model_version %}, and available source evidence{% endif %}. This page updates automatically.</p><p id="scan-status" class="muted">Status: {{ scan.status }}</p><a class="secondary button" href="/applications/{{ scan.application_id }}">Return to application</a></section>
+<div style="max-width: 540px; margin: 3rem auto; text-align: center;">
+  <div class="card" style="padding: 3rem 2rem;">
+    <div class="spinner" style="margin: 0 auto 1.5rem;"></div>
+
+    <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Assessment in Progress</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+      Analyzing HTTP headers, TLS certificate, cookie parameters, and source code security controls...
+    </p>
+
+    <div style="padding: 1rem; background: var(--surface-glass); border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-subtle);">
+      Scan ID: <strong class="font-mono">#{{ scan.id }}</strong> &bull; Status: <span id="statusText" style="color: var(--primary); font-weight: 600;">{{ scan.status.capitalize() }}</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function pollStatus() {
+    try {
+      const res = await fetch('/scans/{{ scan.id }}/status');
+      const data = await res.json();
+      if (data.status === 'completed' && data.result_url) {
+        window.location.href = data.result_url;
+      } else if (data.status === 'failed') {
+        document.getElementById('statusText').innerText = 'Failed: ' + (data.error || 'Unknown error');
+      } else {
+        setTimeout(pollStatus, 1500);
+      }
+    } catch (e) {
+      setTimeout(pollStatus, 2500);
+    }
+  }
+  setTimeout(pollStatus, 1000);
+</script>
 {% endblock %}
-{% block scripts %}<script>const poll=async()=>{const r=await fetch('/scans/{{ scan.id }}/status');const d=await r.json();document.querySelector('#scan-status').textContent='Status: '+d.status;if(d.result_url){location.href=d.result_url}else if(d.status==='failed'){document.querySelector('#scan-status').textContent='The assessment could not complete: '+(d.error||'Unknown error.');clearInterval(timer)}};const timer=setInterval(poll,1500);poll();</script>{% endblock %}

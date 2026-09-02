@@ -1,13 +1,141 @@
 {% extends "base.html" %}
-{% block title %}Results · {{ scan.application_name }} · Valorynn{% endblock %}
+
+{% block title %}Scan #{{ scan.id }} Results — Valorynn{% endblock %}
+
 {% block content %}
-<a class="back" href="/applications/{{ scan.application_id }}">← {{ scan.application_name }}</a>
-<section class="results-hero"><div><p class="eyebrow">EVIDENCE-BASED RESULTS</p><h1>Security posture</h1><p>{{ scan.completed_at }} · Model {{ scan.model_version }}</p></div><div class="score-orb {{ scan.risk_level|lower }}"><strong>{{ scan.score }}</strong><span>/ 100</span><b>{{ scan.risk_level }}</b></div></section>
-<section class="explanation card"><h2>How this score was calculated</h2><p>{{ scan.summary }} Scores prioritize recorded evidence and are a risk indicator—not proof that the application is completely secure.</p></section>
-<section class="metrics">{% for level in ['critical','high','medium','low'] %}<div class="metric {{ level }}"><strong>{{ counts.get(level, 0) }}</strong><span>{{ level }}</span></div>{% endfor %}</section>
-<section class="result-actions"><a class="button secondary" href="/scans/{{ scan.id }}/report.html">Export HTML</a><a class="button secondary" href="/scans/{{ scan.id }}/report.pdf">Export PDF</a><a class="button secondary" href="/applications/{{ scan.application_id }}/compare">Compare scans</a></section>
-<section class="simulator card"><div><p class="eyebrow">FIXSIGNAL</p><h2>Security improvement simulator</h2><p>Select suggested fixes to see their estimated priority and projected score. Apply changes and re-scan to verify the result.</p></div><div class="projection"><span>Projected score</span><strong id="projected-score">{{ scan.score }}</strong><small>/100</small><p id="projection-note">Select a fix to simulate improvement.</p></div></section>
-<section class="finding-list">{% for severity in ['critical','high','medium','low','info'] %}{% if groups[severity] %}<h2 class="group-title {{ severity }}">{{ severity|capitalize }} findings <span>{{ groups[severity]|length }}</span></h2>{% for finding in groups[severity] %}<article class="finding card"><label class="fix-select"><input type="checkbox" class="fix-check" data-impact="{{ finding.score_impact }}" data-effort="{{ finding.effort }}" aria-label="Simulate fixing {{ finding.title }}"><span>Simulate fix</span></label><div class="finding-heading"><div><span class="pill {{ finding.severity }}">{{ finding.severity }}</span><span class="muted">{{ finding.category }} · {{ finding.source }}</span><h3>{{ finding.title }}</h3></div><span class="effort">{{ finding.effort }}</span></div><div class="finding-grid"><div><h4>Evidence</h4><p class="evidence">{{ finding.evidence }}</p></div><div><h4>Why it matters</h4><p>{{ finding.explanation }}</p></div></div><div class="remediation"><h4>Recommended fix</h4><p>{{ finding.remediation }}</p></div></article>{% endfor %}{% endif %}{% endfor %}</section>
-<section class="rescan card"><div><h2>Verify the improvement</h2><p>Re-scan after applying selected fixes. Compare this evidence with a new scan to see what changed.</p></div><a class="button" href="/applications/{{ scan.application_id }}">Re-scan application</a></section>
+<div class="page-header">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+      <a href="/applications/{{ scan.application_id }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">← {{ scan.application_name }}</a>
+      <span style="color: var(--text-subtle);">/</span>
+      <span style="font-size: 0.9rem; color: var(--text-main);">Scan #{{ scan.id }}</span>
+    </div>
+    <h1 class="page-title">Assessment Findings & Score</h1>
+  </div>
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <a href="/scans/{{ scan.id }}/report.pdf" class="btn btn-primary btn-sm">📄 Download PDF Report</a>
+    <a href="/scans/{{ scan.id }}/report.html" class="btn btn-secondary btn-sm" download>🌐 Download HTML Report</a>
+  </div>
+</div>
+
+<div class="grid-3" style="grid-template-columns: 1fr 2fr; margin-bottom: 2rem;">
+  <div class="card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2.25rem 1.5rem;">
+    <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+      Security Risk Score
+    </div>
+
+    <div class="score-badge {{ (scan.risk_level or 'low').lower() }}" style="font-size: 2.5rem; padding: 0.75rem 1.75rem; margin-bottom: 1rem;">
+      {{ scan.score }} <span style="font-size: 1.25rem; opacity: 0.8;">/ 100</span>
+    </div>
+
+    <div class="severity-pill {{ (scan.risk_level or 'low').lower() }}" style="font-size: 0.9rem; padding: 0.35rem 1rem;">
+      {{ scan.risk_level }} Risk
+    </div>
+
+    <p style="font-size: 0.8rem; color: var(--text-subtle); margin-top: 1.25rem; line-height: 1.4;">
+      {{ scan.summary }}
+    </p>
+  </div>
+
+  <!-- Interactive FixSignal Simulator Box -->
+  <div class="simulator-box">
+    <div class="simulator-header">
+      <div>
+        <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">⚡ FixSignal Remediation Simulator</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Select findings to fix below to project your improved security score</p>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 0.75rem; color: var(--text-subtle); text-transform: uppercase; font-weight: 600;">Projected Score</div>
+        <div class="simulator-score-display">
+          <span class="current-score-num" style="font-size: 1.8rem; text-decoration: line-through; opacity: 0.5;">{{ scan.score }}</span>
+          <span style="font-size: 1.5rem; color: var(--text-subtle);">→</span>
+          <span class="projected-score-num" id="simulatedScore" style="font-size: 2.2rem; color: var(--risk-low);">{{ scan.score }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted);">
+      <div>Selected Fixes: <strong id="simSelectedCount" style="color: var(--text-main);">0</strong></div>
+      <div>Projected Risk Reduction: <strong id="simPointsRecovered" style="color: var(--risk-low);">+0 pts</strong></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 700;">Recorded Findings ({{ findings|length }})</h2>
+    <div style="display: flex; gap: 0.5rem;">
+      <span class="severity-pill critical">{{ counts.get('critical', 0) }} Critical</span>
+      <span class="severity-pill high">{{ counts.get('high', 0) }} High</span>
+      <span class="severity-pill medium">{{ counts.get('medium', 0) }} Medium</span>
+      <span class="severity-pill low">{{ counts.get('low', 0) }} Low</span>
+      <span class="severity-pill info">{{ counts.get('info', 0) }} Info</span>
+    </div>
+  </div>
+
+  {% if findings %}
+    {% for finding in findings %}
+    <div class="finding-item {{ finding.severity }}">
+      <div class="finding-title">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;" title="Simulate fixing this finding">
+            <input type="checkbox" class="sim-checkbox" data-impact="{{ finding.score_impact }}" onchange="updateSimulator()" style="width: 18px; height: 18px; accent-color: var(--risk-low);">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Fix</span>
+          </label>
+          <span>{{ finding.title }}</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--risk-critical); background: var(--risk-critical-bg); padding: 0.15rem 0.5rem; border-radius: var(--radius-pill);">
+            -{{ finding.score_impact }} pts
+          </span>
+          <span class="severity-pill {{ finding.severity }}">{{ finding.severity }}</span>
+        </div>
+      </div>
+
+      <div class="finding-detail" style="margin-top: 0.5rem;">
+        <strong>Category:</strong> {{ finding.category }} &bull; <strong>Fix Effort:</strong> {{ finding.effort }}
+      </div>
+
+      <div class="finding-code">
+        <strong>Evidence:</strong> {{ finding.evidence }}
+      </div>
+
+      <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 0.5rem;">
+        {{ finding.explanation }}
+      </p>
+
+      <div style="margin-top: 0.75rem; padding: 0.75rem; background: var(--surface-glass); border-left: 3px solid var(--primary); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.875rem;">
+        <strong style="color: var(--primary);">Remediation Guidance:</strong> {{ finding.remediation }}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p style="color: var(--risk-low); font-weight: 600; padding: 2rem 0; text-align: center;">
+    ✓ No security vulnerabilities or configuration defects were detected in this assessment!
+  </p>
+  {% endif %}
+</div>
+
+<script>
+  const baseScore = {{ scan.score }};
+
+  function updateSimulator() {
+    const checkboxes = document.querySelectorAll('.sim-checkbox');
+    let pointsRecovered = 0;
+    let selectedCount = 0;
+
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        selectedCount++;
+        pointsRecovered += parseInt(cb.dataset.impact || '0', 10);
+      }
+    });
+
+    const projected = Math.min(100, baseScore + pointsRecovered);
+    document.getElementById('simulatedScore').innerText = projected;
+    document.getElementById('simSelectedCount').innerText = selectedCount;
+    document.getElementById('simPointsRecovered').innerText = '+' + pointsRecovered + ' pts';
+  }
+</script>
 {% endblock %}
-{% block scripts %}<script>const checks=document.querySelectorAll('.fix-check'),score={{ scan.score }};function update(){let gain=0,n=0;checks.forEach(c=>{if(c.checked){gain+=+c.dataset.impact;n++}});document.querySelector('#projected-score').textContent=Math.min(100,score+gain);document.querySelector('#projection-note').textContent=n?`${n} selected fix${n>1?'es':''}; estimated ${gain} point improvement. Re-scan to verify.`:'Select a fix to simulate improvement.'}checks.forEach(c=>c.addEventListener('change',update));</script>{% endblock %}

@@ -1,6 +1,108 @@
 {% extends "base.html" %}
-{% block title %}Compare scans · {{ application.name }} · Valorynn{% endblock %}
+
+{% block title %}Scan Comparison — {{ application.name }}{% endblock %}
+
 {% block content %}
-<a class="back" href="/applications/{{ application.id }}">← {{ application.name }}</a><section class="page-title"><div><p class="eyebrow">VERIFY IMPROVEMENT</p><h1>Score comparison</h1><p>Compare two completed scans from the same authorized application.</p></div></section>
-{% if error %}<section class="empty-state card"><h2>Comparison not available</h2><p>{{ error }}</p></section>{% else %}<form class="compare-select card" method="get"><label>Before<select name="before">{% for item in scans %}<option value="{{ item.id }}" {% if item.id == before.id %}selected{% endif %}>Scan {{ item.id }} — {{ item.completed_at }} ({{ item.score }}/100)</option>{% endfor %}</select></label><label>After<select name="after">{% for item in scans %}<option value="{{ item.id }}" {% if item.id == after.id %}selected{% endif %}>Scan {{ item.id }} — {{ item.completed_at }} ({{ item.score }}/100)</option>{% endfor %}</select></label><button type="submit" class="secondary">Compare</button></form><section class="comparison-grid"><article class="card"><p class="eyebrow">BEFORE</p><strong class="compare-score">{{ before.score }}</strong><span>/100 · {{ before.risk_level }}</span></article><article class="card highlight"><p class="eyebrow">AFTER</p><strong class="compare-score">{{ after.score }}</strong><span>/100 · {{ after.risk_level }}</span><b class="delta {% if score_change >= 0 %}positive{% else %}negative{% endif %}">{% if score_change >= 0 %}+{% endif %}{{ score_change }} points</b></article></section><section class="comparison-details"><article class="card"><h2>Resolved evidence</h2>{% if resolved %}<ul>{% for title in resolved %}<li>{{ title }}</li>{% endfor %}</ul>{% else %}<p class="muted">No previously recorded finding was absent in this comparison.</p>{% endif %}</article><article class="card"><h2>New evidence</h2>{% if new %}<ul>{% for title in new %}<li>{{ title }}</li>{% endfor %}</ul>{% else %}<p class="muted">No new finding title appeared in this comparison.</p>{% endif %}</article></section>{% endif %}
+<div class="page-header">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+      <a href="/applications/{{ application.id }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">← {{ application.name }}</a>
+      <span style="color: var(--text-subtle);">/</span>
+      <span style="font-size: 0.9rem; color: var(--text-main);">Scan Diff Comparison</span>
+    </div>
+    <h1 class="page-title">Scan Progress & Delta Comparison</h1>
+  </div>
+</div>
+
+{% if error %}
+<div class="card">
+  <p style="color: var(--risk-medium); font-weight: 600;">{{ error }}</p>
+</div>
+{% else %}
+<div class="card" style="margin-bottom: 1.5rem;">
+  <form method="get" style="display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px;">
+      <label for="before" class="form-label">Baseline Scan (Before)</label>
+      <select id="before" name="before" class="form-control" onchange="this.form.submit()">
+        {% for s in scans %}
+        <option value="{{ s.id }}" {% if s.id == before.id %}selected{% endif %}>
+          Scan #{{ s.id }} (Score: {{ s.score }} — {{ s.completed_at }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="flex: 1; min-width: 200px;">
+      <label for="after" class="form-label">Re-Scan (After Fixes)</label>
+      <select id="after" name="after" class="form-control" onchange="this.form.submit()">
+        {% for s in scans %}
+        <option value="{{ s.id }}" {% if s.id == after.id %}selected{% endif %}>
+          Scan #{{ s.id }} (Score: {{ s.score }} — {{ s.completed_at }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+<div class="grid-3" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 2rem;">
+  <div class="card stat-card" style="text-align: center; justify-content: center; flex-direction: column;">
+    <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Baseline Score</div>
+    <div class="stat-value" style="font-size: 2.25rem; margin-top: 0.5rem;">{{ before.score }} / 100</div>
+    <span class="severity-pill {{ before.risk_level.lower() }}" style="margin-top: 0.5rem;">{{ before.risk_level }}</span>
+  </div>
+
+  <div class="card stat-card" style="text-align: center; justify-content: center; flex-direction: column;">
+    <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Score Delta</div>
+    <div class="stat-value" style="font-size: 2.5rem; margin-top: 0.5rem; color: {% if score_change > 0 %}var(--risk-low){% elif score_change < 0 %}var(--risk-critical){% else %}var(--text-muted){% endif %};">
+      {% if score_change > 0 %}+{% endif %}{{ score_change }} pts
+    </div>
+    <div style="font-size: 0.85rem; color: var(--text-subtle); margin-top: 0.25rem;">
+      {% if score_change > 0 %}Security Improved{% elif score_change < 0 %}Risk Increased{% else %}No Change{% endif %}
+    </div>
+  </div>
+
+  <div class="card stat-card" style="text-align: center; justify-content: center; flex-direction: column;">
+    <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">New Score</div>
+    <div class="stat-value" style="font-size: 2.25rem; margin-top: 0.5rem;">{{ after.score }} / 100</div>
+    <span class="severity-pill {{ after.risk_level.lower() }}" style="margin-top: 0.5rem;">{{ after.risk_level }}</span>
+  </div>
+</div>
+
+<div class="grid-3" style="grid-template-columns: 1fr 1fr;">
+  <div class="card" style="border-top: 4px solid var(--risk-low);">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--risk-low); margin-bottom: 1rem;">
+      ✓ Resolved Findings ({{ resolved|length }})
+    </h3>
+    {% if resolved %}
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+        {% for title in resolved %}
+        <li style="padding: 0.6rem 0.85rem; background: var(--risk-low-bg); border-radius: var(--radius-sm); font-size: 0.9rem; color: var(--text-main);">
+          ✓ {{ title }}
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.9rem;">No baseline findings were resolved between these scans.</p>
+    {% endif %}
+  </div>
+
+  <div class="card" style="border-top: 4px solid var(--risk-critical);">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--risk-critical); margin-bottom: 1rem;">
+      ⚠️ Newly Discovered Findings ({{ new|length }})
+    </h3>
+    {% if new %}
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+        {% for title in new %}
+        <li style="padding: 0.6rem 0.85rem; background: var(--risk-critical-bg); border-radius: var(--radius-sm); font-size: 0.9rem; color: var(--text-main);">
+          ⚠️ {{ title }}
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.9rem;">No new security issues introduced.</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}

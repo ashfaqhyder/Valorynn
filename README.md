@@ -56,7 +56,15 @@ This workstation is Docker-first; the included Docker image installs the applica
 
 ## Deployment notes
 
-Use PostgreSQL and a managed volume/object store before production deployment. Set VALORYNN_ENV=production, a strong VALORYNN_SECRET_KEY, VALORYNN_COOKIE_SECURE=true, a trusted reverse proxy with HTTPS, and private Render access for demonstrations. Never commit .env, database files, ZIP archives, generated model artifacts, tokens, or deployment credentials.
+The released container defaults to production settings and exposes `/healthz` for platform health checks. Build and run it with a persistent data volume:
+
+    docker build -t valorynn:0.2.0 .
+    docker volume create valorynn_data
+    docker run -d --name valorynn --restart unless-stopped -p 8000:8000 -e VALORYNN_ENV=production -e VALORYNN_SECRET_KEY="replace-with-a-high-entropy-secret" -e VALORYNN_COOKIE_SECURE=true -e VALORYNN_DATABASE_PATH=/data/valorynn.sqlite3 -v valorynn_data:/data valorynn:0.2.0
+
+For Compose deployment, set a high-entropy `VALORYNN_SECRET_KEY` in `.env` and run `docker compose up --build -d`. Put the container behind a trusted HTTPS reverse proxy before exposing it publicly. `VALORYNN_COOKIE_SECURE=true` requires HTTPS for browser session cookies.
+
+SQLite with a managed persistent volume is suitable for a single-instance demonstration or small deployment. Use PostgreSQL and managed storage before scaling to multiple application instances. Never commit `.env`, database files, ZIP archives, generated model artifacts, tokens, or deployment credentials.
 
 Current scope intentionally excludes direct AI-builder integrations, instructor/team sharing, email verification/resets, organization RBAC, compliance reporting, advanced ML prioritization, and deep dependency/CVE matching. These are the planned next phases.
 

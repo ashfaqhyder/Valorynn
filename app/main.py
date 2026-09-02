@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -31,7 +31,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Valorynn", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Valorynn", version="0.2.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 
@@ -41,8 +41,17 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:"
     return response
+
+
+@app.get("/healthz", include_in_schema=False)
+def healthz():
+    try:
+        database.one("SELECT 1")
+    except sqlite3.Error:
+        return JSONResponse({"status": "unhealthy"}, status_code=503)
+    return {"status": "ok"}
 
 
 def current_user(request: Request) -> dict | None:

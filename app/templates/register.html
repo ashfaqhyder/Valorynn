@@ -40,7 +40,7 @@
 
       <div class="form-group">
         <label for="account_type" class="form-label">Account Type</label>
-        <select id="account_type" name="account_type" required class="form-control" onchange="toggleStudentFields(this.value)">
+        <select id="account_type" name="account_type" required class="form-control">
           <option value="student">Student</option>
           <option value="developer">Individual / Developer</option>
           <option value="organization">Organization</option>
@@ -71,13 +71,6 @@
     </div>
   </div>
 </div>
-
-<script>
-  function toggleStudentFields(val) {
-    const fields = document.getElementById('studentFields');
-    fields.style.display = (val === 'student') ? 'block' : 'none';
-  }
-</script>
 
 {% endblock %}
 

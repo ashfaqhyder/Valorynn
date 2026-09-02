@@ -14,7 +14,7 @@
     {% if scans|length >= 2 %}
     <a href="/applications/{{ application.id }}/compare" class="btn btn-secondary btn-sm">📊 Compare Scans</a>
     {% endif %}
-    <form action="/applications/{{ application.id }}/delete" method="post" onsubmit="return confirm('Delete this target application and all its scan history?');" style="display: inline;">
+    <form action="/applications/{{ application.id }}/delete" method="post" class="delete-application-form" style="display: inline;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <button class="btn btn-danger btn-sm" type="submit">Delete Target</button>
     </form>

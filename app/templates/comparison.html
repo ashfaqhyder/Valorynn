@@ -23,7 +23,7 @@
   <form method="get" style="display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap;">
     <div style="flex: 1; min-width: 200px;">
       <label for="before" class="form-label">Baseline Scan (Before)</label>
-      <select id="before" name="before" class="form-control" onchange="this.form.submit()">
+      <select id="before" name="before" class="form-control comparison-select">
         {% for s in scans %}
         <option value="{{ s.id }}" {% if s.id == before.id %}selected{% endif %}>
           Scan #{{ s.id }} (Score: {{ s.score }} — {{ s.completed_at }})
@@ -34,7 +34,7 @@
 
     <div style="flex: 1; min-width: 200px;">
       <label for="after" class="form-label">Re-Scan (After Fixes)</label>
-      <select id="after" name="after" class="form-control" onchange="this.form.submit()">
+      <select id="after" name="after" class="form-control comparison-select">
         {% for s in scans %}
         <option value="{{ s.id }}" {% if s.id == after.id %}selected{% endif %}>
           Scan #{{ s.id }} (Score: {{ s.score }} — {{ s.completed_at }})

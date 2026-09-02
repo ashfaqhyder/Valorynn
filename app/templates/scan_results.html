@@ -3,7 +3,7 @@
 {% block title %}Scan #{{ scan.id }} Results — Valorynn{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header" data-base-score="{{ scan.score }}">
   <div>
     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
       <a href="/applications/{{ scan.application_id }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">← {{ scan.application_name }}</a>
@@ -79,7 +79,7 @@
       <div class="finding-title">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;" title="Simulate fixing this finding">
-            <input type="checkbox" class="sim-checkbox" data-impact="{{ finding.score_impact }}" onchange="updateSimulator()" style="width: 18px; height: 18px; accent-color: var(--risk-low);">
+            <input type="checkbox" class="sim-checkbox" data-impact="{{ finding.score_impact }}" style="width: 18px; height: 18px; accent-color: var(--risk-low);">
             <span style="font-size: 0.85rem; color: var(--text-muted);">Fix</span>
           </label>
           <span>{{ finding.title }}</span>
@@ -117,25 +117,4 @@
   {% endif %}
 </div>
 
-<script>
-  const baseScore = {{ scan.score }};
-
-  function updateSimulator() {
-    const checkboxes = document.querySelectorAll('.sim-checkbox');
-    let pointsRecovered = 0;
-    let selectedCount = 0;
-
-    checkboxes.forEach(cb => {
-      if (cb.checked) {
-        selectedCount++;
-        pointsRecovered += parseInt(cb.dataset.impact || '0', 10);
-      }
-    });
-
-    const projected = Math.min(100, baseScore + pointsRecovered);
-    document.getElementById('simulatedScore').innerText = projected;
-    document.getElementById('simSelectedCount').innerText = selectedCount;
-    document.getElementById('simPointsRecovered').innerText = '+' + pointsRecovered + ' pts';
-  }
-</script>
 {% endblock %}

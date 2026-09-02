@@ -3,7 +3,7 @@
 {% block title %}Scanning Target — Valorynn{% endblock %}
 
 {% block content %}
-<div style="max-width: 540px; margin: 3rem auto; text-align: center;">
+<div class="scan-progress-page" data-scan-id="{{ scan.id }}">
   <div class="card" style="padding: 3rem 2rem;">
     <div class="spinner" style="margin: 0 auto 1.5rem;"></div>
 
@@ -18,22 +18,4 @@
   </div>
 </div>
 
-<script>
-  async function pollStatus() {
-    try {
-      const res = await fetch('/scans/{{ scan.id }}/status');
-      const data = await res.json();
-      if (data.status === 'completed' && data.result_url) {
-        window.location.href = data.result_url;
-      } else if (data.status === 'failed') {
-        document.getElementById('statusText').innerText = 'Failed: ' + (data.error || 'Unknown error');
-      } else {
-        setTimeout(pollStatus, 1500);
-      }
-    } catch (e) {
-      setTimeout(pollStatus, 2500);
-    }
-  }
-  setTimeout(pollStatus, 1000);
-</script>
 {% endblock %}

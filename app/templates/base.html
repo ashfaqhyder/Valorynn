@@ -1,49 +1,90 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Valorynn authorized application security assessment platform">
-  <title>{% block title %}Valorynn — Defend what you make{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Valorynn — Application security, made understandable.">
+  <title>{% block title %}Valorynn — Know what makes your application vulnerable{% endblock %}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
+<body data-theme="dark">
+  <!-- Navigation Bar -->
   <nav class="navbar">
-    <a class="nav-brand" href="/">
-      <div class="shield-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      </div>
-      <span>VALORYNN</span>
-    </a>
-
-    <div style="display: flex; align-items: center; gap: 1.25rem;">
+    <div class="nav-left">
+      <a href="/" class="nav-brand">
+        <div class="valorynn-logo-container">
+          <svg class="valorynn-logo" viewBox="0 0 100 100" width="28" height="28">
+            <g class="logo-element logo-element-1">
+              <line x1="50" y1="10" x2="50" y2="30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <g class="logo-element logo-element-2">
+              <line x1="70" y1="30" x2="85" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <g class="logo-element logo-element-3">
+              <line x1="30" y1="30" x2="15" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <g class="logo-element logo-element-4">
+              <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
+            </g>
+            <g class="logo-element logo-element-5">
+              <line x1="50" y1="70" x2="50" y2="90" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <g class="logo-element logo-element-6">
+              <path d="M 40 50 L 50 60 L 60 50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+        </div>
+        <span class="nav-wordmark">VALORYNN</span>
+      </a>
       {% if user %}
-      <div class="user-badge">
+      <div class="nav-user">
         <span>{{ user.name }}</span>
-        <span class="user-type-tag">{{ user.account_type }}</span>
+        <span class="nav-user-type">{{ user.account_type }}</span>
       </div>
-      <ul class="nav-links">
-        <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-        <li><a href="/applications/new" class="btn btn-primary btn-sm">+ Add Target</a></li>
-        <li>
-          <form action="/signout" method="post" style="display: inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <button class="btn btn-secondary btn-sm" type="submit">Sign Out</button>
-          </form>
-        </li>
-      </ul>
+      {% endif %}
+    </div>
+
+    <div class="nav-center">
+      {% if not user %}
+      <a href="/#product" class="nav-link">Product</a>
+      <a href="/#how-it-works" class="nav-link">How It Works</a>
+      <a href="/#security" class="nav-link">Security</a>
+      <a href="/#faq" class="nav-link">FAQ</a>
+      {% endif %}
+    </div>
+
+    <div class="nav-right">
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="theme-icon-light" viewBox="0 0 24 24" width="20" height="20">
+          <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
+          <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20" style="display: none;">
+          <path d="M 21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      {% if user %}
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/applications/new" class="nav-cta">Add Application</a>
+      <form action="/signout" method="post" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-secondary btn-sm" type="submit">Sign Out</button>
+      </form>
       {% else %}
-      <div style="display: flex; gap: 0.75rem;">
-        <a href="/signin" class="btn btn-secondary btn-sm">Sign In</a>
-        <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
-      </div>
+      <a href="/signin" class="nav-link nav-link-secondary">Sign In</a>
+      <a href="/register" class="nav-cta">Register</a>
       {% endif %}
     </div>
   </nav>
 
-  <main class="main-container">
+  <main class="main-container page-shell">
     {% if error %}
     <div class="card" style="border-left: 4px solid var(--risk-critical); background: var(--risk-critical-bg);" role="alert">
       <div style="display: flex; align-items: center; gap: 0.75rem; color: var(--risk-critical); font-weight: 600;">
@@ -69,6 +110,7 @@
     <p style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-subtle);">Scores are risk indicators, not guarantees of total security.</p>
   </footer>
 
+  <script src="/static/landing.js"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

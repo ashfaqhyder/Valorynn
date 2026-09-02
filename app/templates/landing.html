@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Valorynn — Application security, made understandable. Identify vulnerabilities, understand impact, prioritize remediation, verify improvements.">
+    <title>Valorynn — Know what makes your application vulnerable</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="landing-page" data-theme="dark">
+    <!-- Navigation Bar -->
+    <nav class="navbar landing-nav">
+        <div class="nav-left">
+            <a href="/" class="nav-brand">
+                <div class="valorynn-logo-container">
+                    <svg class="valorynn-logo" viewBox="0 0 100 100" width="28" height="28">
+                        <g class="logo-element logo-element-1">
+                            <line x1="50" y1="10" x2="50" y2="30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                        <g class="logo-element logo-element-2">
+                            <line x1="70" y1="30" x2="85" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                        <g class="logo-element logo-element-3">
+                            <line x1="30" y1="30" x2="15" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                        <g class="logo-element logo-element-4">
+                            <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </g>
+                        <g class="logo-element logo-element-5">
+                            <line x1="50" y1="70" x2="50" y2="90" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                        <g class="logo-element logo-element-6">
+                            <path d="M 40 50 L 50 60 L 60 50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </svg>
+                </div>
+                <span class="nav-wordmark">VALORYNN</span>
+            </a>
+        </div>
+
+        <div class="nav-center">
+            <a href="#product" class="nav-link">Product</a>
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#security" class="nav-link">Security</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+        </div>
+
+        <div class="nav-right">
+            <button class="theme-toggle" aria-label="Toggle theme">
+                <svg class="theme-icon-light" viewBox="0 0 24 24" width="20" height="20">
+                    <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20" style="display: none;">
+                    <path d="M 21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <a href="/signin" class="nav-link nav-link-secondary">Sign In</a>
+            <a href="/register" class="nav-cta">Register</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Know what makes your application vulnerable.</h1>
+            <p class="hero-subtitle">Valorynn uses automated security analysis and intelligent risk assessment to identify vulnerabilities, explain their impact, prioritize remediation, and verify improvements.</p>
+            
+            <div class="hero-ctas">
+                <a href="/register" class="btn btn-primary btn-lg morph-transition">Start Securing Your Application</a>
+                <a href="#product" class="btn btn-secondary btn-lg">Explore Valorynn</a>
+            </div>
+        </div>
+
+        <div class="hero-visualization">
+            <div class="workflow-animation">
+                <div class="workflow-step" data-step="application">
+                    <span>APPLICATION</span>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step" data-step="scan">
+                    <span>SCAN</span>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step" data-step="analyze">
+                    <span>ANALYZE</span>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step" data-step="findings">
+                    <span>FINDINGS</span>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step" data-step="risk">
+                    <span>RISK</span>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step" data-step="fix">
+                    <span>FIX</span>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step" data-step="verify">
+                    <span>VERIFY</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Introduction -->
+    <section class="section section-product" id="product">
+        <div class="section-content">
+            <h2 class="section-title">Security shouldn't stop at detection.</h2>
+            
+            <p class="section-intro-text">Finding a vulnerability is only the beginning. Developers need to understand what is vulnerable, why it matters, how severe it is, what should be fixed first, and whether the fix actually improved security.</p>
+
+            <div class="workflow-horizontal">
+                <div class="workflow-stage">
+                    <span class="stage-label">DISCOVER</span>
+                </div>
+                <div class="workflow-line">→</div>
+                <div class="workflow-stage">
+                    <span class="stage-label">UNDERSTAND</span>
+                </div>
+                <div class="workflow-line">→</div>
+                <div class="workflow-stage">
+                    <span class="stage-label">PRIORITIZE</span>
+                </div>
+                <div class="workflow-line">→</div>
+                <div class="workflow-stage">
+                    <span class="stage-label">FIX</span>
+                </div>
+                <div class="workflow-line">→</div>
+                <div class="workflow-stage">
+                    <span class="stage-label">VERIFY</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Attack Surface Section -->
+    <section class="section section-surface">
+        <div class="section-content">
+            <h2 class="section-title">Every application has an attack surface.</h2>
+            
+            <p class="section-intro-text">Modern applications expose authentication, APIs, user data, sessions, cookies, configurations, security headers, and application logic. A vulnerability in any of these areas can create unnecessary security risk.</p>
+
+            <div class="attack-surface-grid">
+                <div class="central-app">WEB APPLICATION</div>
+                <div class="surface-nodes">
+                    <div class="surface-node">AUTH</div>
+                    <div class="surface-node">API</div>
+                    <div class="surface-node">SESSION</div>
+                    <div class="surface-node">COOKIES</div>
+                    <div class="surface-node">HEADERS</div>
+                    <div class="surface-node">CONFIG</div>
+                    <div class="surface-node">DATA</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section section-how-works" id="how-it-works">
+        <div class="section-content">
+            <h2 class="section-title">How Valorynn Works</h2>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3 class="step-title">Add</h3>
+                    <p class="step-description">Connect an authorized application to Valorynn.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3 class="step-title">Scan</h3>
+                    <p class="step-description">Analyze the application's security posture automatically.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3 class="step-title">Understand</h3>
+                    <p class="step-description">Turn technical findings into actionable information.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <h3 class="step-title">Prioritize</h3>
+                    <p class="step-description">Focus on the issues that matter most.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">05</div>
+                    <h3 class="step-title">Fix</h3>
+                    <p class="step-description">Understand what should change and why.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">06</div>
+                    <h3 class="step-title">Verify</h3>
+                    <p class="step-description">Re-scan and measure the improvement.</p>
+                    <div class="score-comparison">72 → 89</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section section-features">
+        <div class="section-content">
+            <h2 class="section-title">Core Features</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3 class="feature-title">Intelligent Security Analysis</h3>
+                    <p class="feature-description">Valorynn analyzes application security signals and organizes findings into meaningful security information.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Risk Scoring</h3>
+                    <p class="feature-description">Get a simple, clear understanding of your application's overall security posture.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Findings & Evidence</h3>
+                    <p class="feature-description">See the technical evidence behind each finding to understand the vulnerability.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Remediation Guidance</h3>
+                    <p class="feature-description">Understand what needs to change and why to fix vulnerabilities effectively.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">FixSignal</h3>
+                    <p class="feature-description">Simulate how selected remediation actions could affect your projected security score. Clearly distinguishes projections from verified scan results.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Re-scan & Verification</h3>
+                    <p class="feature-description">Compare previous and current scans to determine whether security posture improved.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Score Visualization -->
+    <section class="section section-score">
+        <div class="section-content">
+            <h2 class="section-title">Security is Measurable</h2>
+
+            <div class="score-visualization">
+                <div class="score-circle">
+                    <svg viewBox="0 0 200 200" width="200" height="200">
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+                        <circle class="score-ring" cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="565" stroke-dashoffset="565" stroke-linecap="round"/>
+                    </svg>
+                    <div class="score-value" data-score="91">91</div>
+                </div>
+                <div class="score-text">
+                    <p>Your security posture is continuously measured and improved.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FixSignal Visualization -->
+    <section class="section section-fixsignal">
+        <div class="section-content">
+            <h2 class="section-title">See the Impact Before You Fix</h2>
+
+            <div class="fixsignal-demo">
+                <div class="fixsignal-current">
+                    <div class="fixsignal-label">CURRENT</div>
+                    <div class="fixsignal-score">72</div>
+                </div>
+
+                <div class="fixsignal-actions">
+                    <div class="action-item">
+                        <input type="checkbox" id="action1">
+                        <label for="action1">+ XSS remediation</label>
+                    </div>
+                    <div class="action-item">
+                        <input type="checkbox" id="action2">
+                        <label for="action2">+ Security header remediation</label>
+                    </div>
+                    <div class="action-item">
+                        <input type="checkbox" id="action3">
+                        <label for="action3">+ Cookie configuration remediation</label>
+                    </div>
+                </div>
+
+                <div class="fixsignal-projected">
+                    <div class="fixsignal-label">PROJECTED SCORE</div>
+                    <div class="fixsignal-score projected">72 → 91</div>
+                </div>
+
+                <p class="fixsignal-disclaimer">Projection is not verification. A new scan is required to confirm the result.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Before / After Section -->
+    <section class="section section-comparison">
+        <div class="section-content">
+            <h2 class="section-title">Don't Just Fix Vulnerabilities. Measure the Improvement.</h2>
+
+            <div class="comparison-container">
+                <div class="comparison-column before">
+                    <h3 class="comparison-label">BEFORE</h3>
+                    <div class="comparison-stat">
+                        <span class="stat-label">Score</span>
+                        <span class="stat-value">61</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="stat-label">Findings</span>
+                        <span class="stat-value">14</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="stat-label">High Risk</span>
+                        <span class="stat-value">5</span>
+                    </div>
+                </div>
+
+                <div class="comparison-divider">→</div>
+
+                <div class="comparison-column after">
+                    <h3 class="comparison-label">AFTER</h3>
+                    <div class="comparison-stat">
+                        <span class="stat-label">Score</span>
+                        <span class="stat-value">89</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="stat-label">Findings</span>
+                        <span class="stat-value">6</span>
+                    </div>
+                    <div class="comparison-stat">
+                        <span class="stat-label">High Risk</span>
+                        <span class="stat-value">1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audience Section -->
+    <section class="section section-audience">
+        <div class="section-content">
+            <h2 class="section-title">Who Is Valorynn For?</h2>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <h3 class="audience-title">Developers</h3>
+                    <p class="audience-description">Understand security issues without leaving the development workflow.</p>
+                </div>
+
+                <div class="audience-card">
+                    <h3 class="audience-title">Security Teams</h3>
+                    <p class="audience-description">Prioritize findings and validate remediation.</p>
+                </div>
+
+                <div class="audience-card">
+                    <h3 class="audience-title">Organizations</h3>
+                    <p class="audience-description">Maintain a measurable view of application security.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="section section-final-cta">
+        <div class="section-content">
+            <h2 class="section-title">Start Understanding Your Application's Security</h2>
+            <p class="section-tagline">Scan. Understand. Fix. Verify.</p>
+
+            <div class="cta-buttons">
+                <a href="/register" class="btn btn-primary btn-lg morph-transition">Get Started</a>
+                <a href="/signin" class="btn btn-secondary btn-lg">Sign In</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section section-faq" id="faq">
+        <div class="section-content">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What is Valorynn?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Valorynn is an application security platform designed to help identify vulnerabilities, understand their impact, prioritize remediation, and verify improvements through re-scanning.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What can Valorynn analyze?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Valorynn focuses on authorized application security assessment and analyzes relevant security signals exposed by the target application, including authentication, APIs, sessions, and configuration.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Do I need authorization to scan an application?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. Users should only scan applications they own or are explicitly authorized to assess. Valorynn is designed for authorized security testing only.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What happens after a scan?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Valorynn organizes discovered findings, provides evidence and remediation guidance, and calculates a security score to give you a clear view of your application's security posture.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What is FixSignal?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>FixSignal provides a projected view of how selected remediation actions could affect the security score. This helps you prioritize which fixes would have the greatest impact.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Is the FixSignal score guaranteed?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>No. It is a projection based on the current findings. A new scan is required to verify the actual result after implementing remediation.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I compare previous scans?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. Users can compare scan history, scores, findings, and security improvements over time to track progress.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I export reports?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Valorynn supports generating detailed security reports and scan results. Export functionality is available within your account dashboard.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Is my application data secure?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Application security is a core principle of Valorynn's design. Your data is protected with industry-standard encryption and security practices. See our Security page for more details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Section -->
+    <section class="section section-security" id="security">
+        <div class="section-content">
+            <h2 class="section-title">Security</h2>
+            <p class="section-intro-text">Valorynn is built with security at its core. We follow industry best practices to protect your application data and maintain the highest standards of confidentiality, integrity, and availability.</p>
+            <div class="security-info">
+                <p>For detailed security documentation and compliance information, please contact our security team.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">VALORYNN</div>
+                <p class="footer-tagline">Application security, made understandable.</p>
+            </div>
+
+            <div class="footer-links">
+                <a href="#product">Product</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#security">Security</a>
+                <a href="#faq">FAQ</a>
+                <a href="/signin">Sign In</a>
+                <a href="/register">Register</a>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Valorynn. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/landing.js"></script>
+</body>
+</html>

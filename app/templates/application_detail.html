@@ -3,14 +3,14 @@
 {% block title %}{{ application.name }} — Valorynn{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header detail-page-header">
   <div>
     <h1 class="page-title">{{ application.name }}</h1>
     <p class="page-subtitle">
       Target: <a href="{{ application.target_url }}" target="_blank" rel="noopener" class="font-mono" style="color: var(--primary);">{{ application.target_url }}</a>
     </p>
   </div>
-  <div style="display: flex; gap: 0.75rem;">
+  <div class="detail-actions">
     {% if scans|length >= 2 %}
     <a href="/applications/{{ application.id }}/compare" class="btn btn-secondary btn-sm">📊 Compare Scans</a>
     {% endif %}
@@ -21,9 +21,9 @@
   </div>
 </div>
 
-<div class="grid-3" style="grid-template-columns: 2fr 1fr;">
+<div class="detail-layout">
   <div>
-    <div class="card" style="border-top: 4px solid var(--primary);">
+    <div class="card detail-scan-card">
       <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Run Authorized Security Scan</h2>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
         Before starting an assessment, you must explicitly confirm ownership or written authorization to test this target URL.
@@ -55,7 +55,7 @@
   </div>
 
   <div>
-    <div class="card">
+    <div class="card detail-metadata-card">
       <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Target Metadata</h3>
       <div style="font-size: 0.875rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.75rem;">
         <div>
@@ -79,7 +79,7 @@
   </div>
 </div>
 
-<div class="card">
+<div class="card detail-history-card">
   <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem;">Assessment History</h2>
 
   {% if scans %}

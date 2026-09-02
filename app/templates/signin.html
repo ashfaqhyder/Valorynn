@@ -4,36 +4,46 @@
 
 {% block content %}
 <div class="auth-wrapper">
-  <div class="card auth-card pulse-glow">
-    <div style="text-align: center; margin-bottom: 2rem;">
-      <div class="shield-icon" style="width: 56px; height: 56px; margin: 0 auto 1.25rem; border-radius: 14px; font-size: 1.75rem; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: var(--shadow-glow);">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <div class="auth-card">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <div class="valorynn-logo-container" style="width: 56px; height: 56px; margin: 0 auto 1.5rem;">
+        <svg class="valorynn-logo" viewBox="0 0 100 100" width="56" height="56">
+          <g class="logo-element">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="50" y1="15" x2="50" y2="85" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="15" y1="50" x2="85" y2="50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </g>
+        </svg>
       </div>
-      <h1 style="font-size: 1.65rem; font-weight: 700; letter-spacing: -0.02em;">Sign in to Valorynn</h1>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Enter your credentials to access your assessment dashboard</p>
+      <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Welcome back</h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">Sign in to your Valorynn account</p>
     </div>
 
-    <form method="post" action="/signin" class="form-centered">
+    <form method="post" action="/signin">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
       <div class="form-group">
         <label for="email" class="form-label">Email Address</label>
-        <input type="email" id="email" name="email" required autofocus class="form-control" placeholder="user@domain.com">
+        <input type="email" id="email" name="email" required autofocus class="form-control" placeholder="you@example.com">
       </div>
 
       <div class="form-group">
         <label for="password" class="form-label">Password</label>
-        <input type="password" id="password" name="password" required class="form-control" placeholder="••••••••••••">
+        <input type="password" id="password" name="password" required class="form-control" placeholder="Enter your password">
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
-        Sign In →
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">
+        Sign In
       </button>
     </form>
 
-    <div style="text-align: center; margin-top: 1.75rem; font-size: 0.9rem; color: var(--text-muted);">
-      Don't have an account? <a href="/register" style="color: var(--primary); font-weight: 600; text-decoration: none;">Register here</a>
+    <div style="text-align: center; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem;">
+        Don't have an account? <a href="/register" style="color: var(--text-primary); font-weight: 600; text-decoration: none;">Create one now</a>
+      </p>
     </div>
   </div>
 </div>
+
 {% endblock %}
+

@@ -91,7 +91,10 @@ def owned_scan_or_404(scan_id: int, user_id: int) -> dict:
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return redirect("/dashboard" if current_user(request) else "/signin")
+    user = current_user(request)
+    if user:
+        return redirect("/dashboard")
+    return templates.TemplateResponse(request, "landing.html", {"user": user})
 
 
 @app.get("/register", response_class=HTMLResponse)

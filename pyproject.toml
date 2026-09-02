@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "valorynn"
-version = "0.2.0"
+version = "0.2.1"
 description = "Authorized application security assessments with explainable scoring."
 requires-python = ">=3.11"
 dependencies = [

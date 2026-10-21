@@ -221,7 +221,7 @@ Route Access Control
 Dependency Manifests
 ```
 
-The scanner is intentionally bounded and does **not** attempt exploitation, brute force, authentication attacks, or internal-network scanning.
+The scanner validates every resolved address, pins outbound connections to a validated IP while retaining hostname-based TLS verification, and does not follow redirects. It is intentionally bounded and does **not** attempt exploitation, brute force, authentication attacks, or internal-network scanning.
 
 ---
 

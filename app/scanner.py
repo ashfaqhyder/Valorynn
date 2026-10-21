@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from urllib.parse import urlparse
 
+import httpcore
 import httpx
 
 from app.config import settings
@@ -31,12 +32,56 @@ SECRET_PATTERNS = [
 DEBUG_PATTERN = re.compile(r"(?:DEBUG\s*=\s*True|NODE_ENV\s*=\s*['\"]development|FLASK_ENV\s*=\s*['\"]development)", re.I)
 CORS_PATTERN = re.compile(r"Access-Control-Allow-Origin\s*[:=]\s*['\"]?\*", re.I)
 UPLOAD_PATTERN = re.compile(r"(?:upload|multer|file)\b", re.I)
+IPV6_TRANSLATION_PREFIXES = (
+    ipaddress.ip_network("64:ff9b::/96"),
+    ipaddress.ip_network("64:ff9b:1::/48"),
+)
 
 
 @dataclass
 class Target:
     url: str
     hostname: str
+    port: int
+    addresses: tuple[str, ...]
+
+
+class _PinnedNetworkBackend(httpcore.SyncBackend):
+    """Connect to validated IPs while httpcore retains the original URL hostname for TLS."""
+
+    def __init__(self, hostname: str, port: int, addresses: tuple[str, ...]) -> None:
+        super().__init__()
+        self._hostname = hostname.rstrip(".").lower()
+        self._port = port
+        self._addresses = addresses
+
+    def connect_tcp(
+        self,
+        host: str,
+        port: int,
+        timeout: float | None = None,
+        local_address: str | None = None,
+        socket_options: list[tuple[int, int, int]] | None = None,
+    ) -> httpcore.NetworkStream:
+        if host.rstrip(".").lower() != self._hostname or port != self._port:
+            raise httpcore.ConnectError("The requested connection does not match the validated target.")
+        return super().connect_tcp(
+            self._addresses[0],
+            port,
+            timeout=timeout,
+            local_address=local_address,
+            socket_options=socket_options,
+        )
+
+
+class _PinnedHTTPTransport(httpx.HTTPTransport):
+    def __init__(self, target: Target) -> None:
+        super().__init__(trust_env=False)
+        # HTTPX does not expose its httpcore network backend in its public transport API.
+        # Keep HTTPX's normal request/TLS handling and replace only the TCP connector.
+        self._pool._network_backend = _PinnedNetworkBackend(
+            target.hostname, target.port, target.addresses
+        )
 
 
 def _finding(category: str, title: str, severity: str, evidence: str, explanation: str, remediation: str, effort: str, source: str = "url-check", confidence: float | None = None) -> dict:
@@ -61,15 +106,26 @@ def validate_target(value: str) -> Target:
     hostname = parsed.hostname.rstrip(".").lower()
     if hostname in {"localhost", "localhost.localdomain"} or hostname.endswith(".local"):
         raise ValueError("Local and private targets are not permitted.")
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
     try:
-        addresses = {info[4][0] for info in socket.getaddrinfo(hostname, parsed.port or (443 if parsed.scheme == "https" else 80))}
+        resolved = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
     except socket.gaierror as error:
         raise ValueError("The target hostname could not be resolved.") from error
+    addresses = tuple(dict.fromkeys(info[4][0] for info in resolved))
+    if not addresses:
+        raise ValueError("The target hostname did not resolve to an address.")
     for address in addresses:
-        ip = ipaddress.ip_address(address)
-        if not ip.is_global:
+        try:
+            ip = ipaddress.ip_address(address)
+        except ValueError as error:
+            raise ValueError("The target resolved to an invalid IP address.") from error
+        if (
+            not ip.is_global
+            or ip.is_reserved
+            or any(ip in prefix for prefix in IPV6_TRANSLATION_PREFIXES)
+        ):
             raise ValueError("The target resolves to a private or reserved address and cannot be scanned.")
-    return Target(url=parsed.geturl(), hostname=hostname)
+    return Target(url=parsed.geturl(), hostname=hostname, port=port, addresses=addresses)
 
 
 def _tls_finding(target: Target) -> list[dict]:
@@ -77,9 +133,13 @@ def _tls_finding(target: Target) -> list[dict]:
         return [_finding("Transport", "HTTPS is not used", "high", f"Target URL uses {urlparse(target.url).scheme.upper()}.", "Traffic and session cookies may be exposed or modified in transit when a site is served without HTTPS.", "Serve the application over HTTPS and redirect all HTTP traffic to its HTTPS equivalent.", "Moderate")]
     try:
         context = ssl.create_default_context()
-        with socket.create_connection((target.hostname, 443), timeout=settings.scan_timeout_seconds) as raw:
-            with context.wrap_socket(raw, server_hostname=target.hostname) as secured:
-                certificate = secured.getpeercert()
+        with (
+            socket.create_connection(
+                (target.addresses[0], target.port), timeout=settings.scan_timeout_seconds
+            ) as raw,
+            context.wrap_socket(raw, server_hostname=target.hostname) as secured,
+        ):
+            certificate = secured.getpeercert()
         if not certificate:
             return [_finding("Transport", "TLS certificate could not be verified", "high", "No peer certificate was returned.", "An unverified certificate prevents reliable encrypted connections.", "Install a valid certificate with a complete trust chain.", "Moderate")]
     except (OSError, ssl.SSLError) as error:
@@ -92,7 +152,15 @@ def inspect_url(target: Target) -> list[dict]:
     headers: dict[str, str] = {}
     body = ""
     try:
-        with httpx.Client(timeout=settings.scan_timeout_seconds, follow_redirects=False, max_redirects=0, headers={"User-Agent": "Valorynn-Authorized-Scanner/0.1"}) as client:
+        transport = _PinnedHTTPTransport(target)
+        with httpx.Client(
+            transport=transport,
+            trust_env=False,
+            timeout=settings.scan_timeout_seconds,
+            follow_redirects=False,
+            max_redirects=0,
+            headers={"User-Agent": "Valorynn-Authorized-Scanner/0.1"},
+        ) as client:
             response = client.get(target.url)
         headers = {key.lower(): value for key, value in response.headers.items()}
         body = response.text[:250_000]

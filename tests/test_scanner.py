@@ -9,6 +9,36 @@ import pytest
 from app import scanner
 from app.scanner import SECRET_PATTERNS, inspect_source, validate_target
 
+STREAM_CHUNK_BYTES = 16 * 1024
+
+
+class RepeatingStream(httpx.SyncByteStream):
+    def __init__(self, chunk: bytes, max_chunks: int | None = None):
+        self.chunk = chunk
+        self.max_chunks = max_chunks
+        self.chunks_yielded = 0
+        self.closed = False
+
+    def __iter__(self):
+        while self.max_chunks is None or self.chunks_yielded < self.max_chunks:
+            self.chunks_yielded += 1
+            yield self.chunk
+
+    def close(self):
+        self.closed = True
+
+
+class FailingStream(httpx.SyncByteStream):
+    def __init__(self):
+        self.closed = False
+
+    def __iter__(self):
+        raise httpx.ReadTimeout("simulated read timeout")
+        yield b""
+
+    def close(self):
+        self.closed = True
+
 
 def mock_dns(monkeypatch, addresses):
     def getaddrinfo(hostname, port, *, type):
@@ -96,6 +126,203 @@ def test_inspect_url_does_not_follow_redirects(monkeypatch):
 
     assert requests == [target.url]
     assert findings[0]["title"] == "Redirect requires review"
+    assert any(item["title"] == "Response body inspection incomplete" for item in findings)
+
+
+@pytest.mark.parametrize("content_length", [None, "1", "999999999"])
+def test_inspect_url_caps_oversized_stream_without_trusting_content_length(
+    monkeypatch, content_length
+):
+    mock_dns(monkeypatch, ["8.8.8.8"])
+    target = validate_target("https://scanner.example.test")
+    stream = RepeatingStream(
+        b"traceback " + b"x" * (STREAM_CHUNK_BYTES - len("traceback ")),
+    )
+    headers = {}
+    if content_length is not None:
+        headers["content-length"] = content_length
+    original_reader = scanner._read_bounded_response_body
+    inspected_byte_lengths = []
+
+    def record_inspected_bytes(response):
+        body, incomplete_reason = original_reader(response)
+        inspected_byte_lengths.append(len(body.encode("utf-8")))
+        return body, incomplete_reason
+
+    def handler(request):
+        assert request.headers["accept-encoding"] == "identity"
+        return httpx.Response(200, headers=headers, stream=stream, request=request)
+
+    monkeypatch.setattr(scanner, "_tls_finding", lambda _target: [])
+    monkeypatch.setattr(scanner, "_read_bounded_response_body", record_inspected_bytes)
+    monkeypatch.setattr(
+        scanner, "_PinnedHTTPTransport", lambda _target: httpx.MockTransport(handler)
+    )
+
+    findings = scanner.inspect_url(target)
+
+    assert stream.chunks_yielded == (
+        scanner.MAX_RESPONSE_BODY_BYTES + STREAM_CHUNK_BYTES - 1
+    ) // STREAM_CHUNK_BYTES
+    assert inspected_byte_lengths == [scanner.MAX_RESPONSE_BODY_BYTES]
+    assert stream.closed
+    assert any(item["title"] == "Debug or framework information exposed" for item in findings)
+    incomplete = next(
+        item for item in findings if item["title"] == "Response body inspection incomplete"
+    )
+    assert "assessment is incomplete" in incomplete["evidence"]
+
+
+def test_inspect_url_accepts_body_exactly_at_limit(monkeypatch):
+    mock_dns(monkeypatch, ["8.8.8.8"])
+    target = validate_target("https://scanner.example.test")
+    stream = RepeatingStream(b"x" * scanner.MAX_RESPONSE_BODY_BYTES, max_chunks=1)
+
+    def handler(request):
+        return httpx.Response(
+            200,
+            headers={"content-length": str(scanner.MAX_RESPONSE_BODY_BYTES)},
+            stream=stream,
+            request=request,
+        )
+
+    monkeypatch.setattr(scanner, "_tls_finding", lambda _target: [])
+    monkeypatch.setattr(
+        scanner, "_PinnedHTTPTransport", lambda _target: httpx.MockTransport(handler)
+    )
+
+    findings = scanner.inspect_url(target)
+
+    assert stream.closed
+    assert not any(item["title"] == "Response body inspection incomplete" for item in findings)
+
+
+def test_inspect_url_inspects_normal_body_and_closes_response(monkeypatch):
+    mock_dns(monkeypatch, ["8.8.8.8"])
+    target = validate_target("https://scanner.example.test")
+    stream = RepeatingStream(b"traceback from application", max_chunks=1)
+
+    def handler(request):
+        return httpx.Response(200, stream=stream, request=request)
+
+    monkeypatch.setattr(scanner, "_tls_finding", lambda _target: [])
+    monkeypatch.setattr(
+        scanner, "_PinnedHTTPTransport", lambda _target: httpx.MockTransport(handler)
+    )
+
+    findings = scanner.inspect_url(target)
+
+    assert stream.closed
+    assert any(item["title"] == "Debug or framework information exposed" for item in findings)
+    assert not any(item["title"] == "Response body inspection incomplete" for item in findings)
+
+
+def test_inspect_url_accepts_empty_body_and_closes_response(monkeypatch):
+    mock_dns(monkeypatch, ["8.8.8.8"])
+    target = validate_target("https://scanner.example.test")
+    stream = RepeatingStream(b"", max_chunks=0)
+
+    def handler(request):
+        return httpx.Response(200, stream=stream, request=request)
+
+    monkeypatch.setattr(scanner, "_tls_finding", lambda _target: [])
+    monkeypatch.setattr(
+        scanner, "_PinnedHTTPTransport", lambda _target: httpx.MockTransport(handler)
+    )
+
+    findings = scanner.inspect_url(target)
+
+    assert stream.closed
+    assert not any(item["title"] == "Response body inspection incomplete" for item in findings)
+
+
+def test_inspect_url_marks_encoded_body_uninspected(monkeypatch):
+    mock_dns(monkeypatch, ["8.8.8.8"])
+    target = validate_target("https://scanner.example.test")
+    stream = RepeatingStream(b"compressed content", max_chunks=1)
+
+    def handler(request):
+        return httpx.Response(
+            200,
+            headers={"content-encoding": "gzip"},
+            stream=stream,
+            request=request,
+        )
+
+    monkeypatch.setattr(scanner, "_tls_finding", lambda _target: [])
+    monkeypatch.setattr(
+        scanner, "_PinnedHTTPTransport", lambda _target: httpx.MockTransport(handler)
+    )
+
+    findings = scanner.inspect_url(target)
+
+    assert stream.closed
+    incomplete = next(
+        item for item in findings if item["title"] == "Response body inspection incomplete"
+    )
+    assert "encoded response body" in incomplete["evidence"]
+
+
+def test_inspect_url_reports_read_timeout_and_closes_response(monkeypatch):
+    mock_dns(monkeypatch, ["8.8.8.8"])
+    target = validate_target("https://scanner.example.test")
+    stream = FailingStream()
+
+    def handler(request):
+        return httpx.Response(200, stream=stream, request=request)
+
+    monkeypatch.setattr(scanner, "_tls_finding", lambda _target: [])
+    monkeypatch.setattr(
+        scanner, "_PinnedHTTPTransport", lambda _target: httpx.MockTransport(handler)
+    )
+
+    findings = scanner.inspect_url(target)
+
+    assert stream.closed
+    assert findings[0]["title"] == "Target could not be assessed"
+
+
+@pytest.mark.parametrize(
+    ("category", "title"),
+    [
+        ("Assessment coverage", "Response body inspection incomplete"),
+        ("Availability", "Target could not be assessed"),
+    ],
+)
+def test_execute_scan_marks_incomplete_assessment_in_summary(
+    monkeypatch, category, title
+):
+    from app import database
+
+    updates = []
+    monkeypatch.setattr(
+        database,
+        "one",
+        lambda _query, _parameters: {"id": 12, "target_url": "http://scanner.example.test"},
+    )
+    monkeypatch.setattr(scanner, "validate_target", lambda url: scanner.Target(url, "scanner.example.test", 80, ("8.8.8.8",)))
+    monkeypatch.setattr(
+        scanner,
+        "inspect_url",
+        lambda _target: [
+            scanner._finding(
+                category,
+                title,
+                "info",
+                "Only a bounded portion was inspected.",
+                "The assessment is incomplete.",
+                "Review the response.",
+                "Moderate",
+            )
+        ],
+    )
+    monkeypatch.setattr(scanner, "update_scan", lambda _scan_id, **fields: updates.append(fields))
+    monkeypatch.setattr(scanner, "insert_findings", lambda _scan_id, _findings: None)
+
+    scanner.execute_scan(12)
+
+    completed = next(update for update in updates if update.get("status") == "completed")
+    assert completed["summary"].startswith("Incomplete assessment.")
 
 
 def test_tls_probe_pins_ip_and_preserves_hostname_verification(monkeypatch):

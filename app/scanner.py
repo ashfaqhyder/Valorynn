@@ -32,6 +32,7 @@ SECRET_PATTERNS = [
 DEBUG_PATTERN = re.compile(r"(?:DEBUG\s*=\s*True|NODE_ENV\s*=\s*['\"]development|FLASK_ENV\s*=\s*['\"]development)", re.I)
 CORS_PATTERN = re.compile(r"Access-Control-Allow-Origin\s*[:=]\s*['\"]?\*", re.I)
 UPLOAD_PATTERN = re.compile(r"(?:upload|multer|file)\b", re.I)
+MAX_RESPONSE_BODY_BYTES = 250_000
 IPV6_TRANSLATION_PREFIXES = (
     ipaddress.ip_network("64:ff9b::/96"),
     ipaddress.ip_network("64:ff9b:1::/48"),
@@ -147,25 +148,72 @@ def _tls_finding(target: Target) -> list[dict]:
     return []
 
 
+def _read_bounded_response_body(response: httpx.Response) -> tuple[str, str | None]:
+    content_encoding = response.headers.get("content-encoding", "").strip().lower()
+    if content_encoding not in {"", "identity"}:
+        return "", (
+            "The target returned an encoded response body that was not decompressed or "
+            "inspected. This assessment is incomplete."
+        )
+
+    body = bytearray()
+    truncated = False
+    for chunk in response.iter_raw():
+        remaining = MAX_RESPONSE_BODY_BYTES - len(body)
+        if len(chunk) > remaining:
+            body.extend(chunk[:remaining])
+            truncated = True
+            break
+        body.extend(chunk)
+
+    if truncated:
+        return body.decode(response.encoding or "utf-8", errors="replace"), (
+            f"Only the first {MAX_RESPONSE_BODY_BYTES} response-body bytes were inspected. "
+            "This assessment is incomplete."
+        )
+    return body.decode(response.encoding or "utf-8", errors="replace"), None
+
+
 def inspect_url(target: Target) -> list[dict]:
     findings = _tls_finding(target)
     headers: dict[str, str] = {}
     body = ""
+    incomplete_reason: str | None = None
     try:
         transport = _PinnedHTTPTransport(target)
-        with httpx.Client(
+        client = httpx.Client(
             transport=transport,
             trust_env=False,
             timeout=settings.scan_timeout_seconds,
             follow_redirects=False,
             max_redirects=0,
-            headers={"User-Agent": "Valorynn-Authorized-Scanner/0.1"},
-        ) as client:
-            response = client.get(target.url)
-        headers = {key.lower(): value for key, value in response.headers.items()}
-        body = response.text[:250_000]
-        if response.is_redirect:
-            findings.append(_finding("Configuration", "Redirect requires review", "low", f"HTTP {response.status_code} redirects to {response.headers.get('location', 'an unspecified location')}.", "Redirects can unintentionally downgrade transport or expose users to an unexpected destination.", "Confirm redirects stay on HTTPS and trusted domains.", "Easy"))
+            headers={
+                "User-Agent": "Valorynn-Authorized-Scanner/0.1",
+                "Accept-Encoding": "identity",
+            },
+        )
+        with client, client.stream("GET", target.url) as response:
+            headers = {key.lower(): value for key, value in response.headers.items()}
+            if response.is_redirect:
+                findings.append(_finding("Configuration", "Redirect requires review", "low", f"HTTP {response.status_code} redirects to {response.headers.get('location', 'an unspecified location')}.", "Redirects can unintentionally downgrade transport or expose users to an unexpected destination.", "Confirm redirects stay on HTTPS and trusted domains.", "Easy"))
+                incomplete_reason = (
+                    "The target returned a redirect. Its destination was not followed or "
+                    "inspected, so this assessment is incomplete."
+                )
+            else:
+                body, incomplete_reason = _read_bounded_response_body(response)
+        if incomplete_reason:
+            findings.append(
+                _finding(
+                    "Assessment coverage",
+                    "Response body inspection incomplete",
+                    "info",
+                    incomplete_reason,
+                    "Some or all of the response body was not inspected; findings and score may not represent the full target.",
+                    "Review the endpoint response and assess the relevant content separately.",
+                    "Moderate",
+                )
+            )
     except (httpx.HTTPError, UnicodeError) as error:
         findings.append(_finding("Availability", "Target could not be assessed", "medium", str(error), "A controlled request did not complete within the assessment limits, so results are incomplete.", "Confirm the authorized target is publicly reachable, then re-scan.", "Easy"))
         return findings
@@ -260,6 +308,12 @@ def execute_scan(scan_id: int, source_bytes: bytes | None = None, source_filenam
         if source_bytes and source_filename:
             findings.extend(inspect_source(source_bytes, source_filename))
         score, risk, summary = calculate_score(findings)
+        if any(
+            item["category"] == "Assessment coverage"
+            or item["title"] == "Target could not be assessed"
+            for item in findings
+        ):
+            summary = f"Incomplete assessment. {summary}"
         insert_findings(scan_id, findings)
         update_scan(scan_id, status="completed", completed_at=utcnow(), score=score, risk_level=risk, summary=summary)
     except Exception as error:  # Errors are stored for the owner, never surfaced as a stack trace.

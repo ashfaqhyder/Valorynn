@@ -62,9 +62,9 @@
 </div>
 
 <div class="card">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div class="findings-card-header">
     <h2 style="font-size: 1.25rem; font-weight: 700;">Recorded Findings ({{ findings|length }})</h2>
-    <div style="display: flex; gap: 0.5rem;">
+    <div class="severity-counts">
       <span class="severity-pill critical">{{ counts.get('critical', 0) }} Critical</span>
       <span class="severity-pill high">{{ counts.get('high', 0) }} High</span>
       <span class="severity-pill medium">{{ counts.get('medium', 0) }} Medium</span>

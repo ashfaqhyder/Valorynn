@@ -1,25 +1,18 @@
 {% extends "base.html" %}
+{% from "partials/brand.html" import brand_lockup %}
 
 {% block title %}Sign In — Valorynn{% endblock %}
 
 {% block content %}
 <div class="auth-wrapper">
   <div class="auth-card">
-    <div style="text-align: center; margin-bottom: 2.5rem;">
-      <div class="valorynn-logo-container" style="width: 56px; height: 56px; margin: 0 auto 1.5rem;">
-        <svg class="valorynn-logo" viewBox="0 0 100 100" width="56" height="56">
-          <g class="logo-element">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2"/>
-            <line x1="50" y1="15" x2="50" y2="85" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="15" y1="50" x2="85" y2="50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </g>
-        </svg>
-      </div>
-      <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Welcome back</h1>
+    <div class="auth-intro">
+      {{ brand_lockup("auth-brand") }}
+      <h1>Welcome back</h1>
       <p style="color: var(--text-secondary); font-size: 0.95rem;">Sign in to your Valorynn account</p>
     </div>
 
-    <form method="post" action="/signin">
+    <form method="post" action="/signin" data-pending-label="Signing in…">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
       <div class="form-group">
@@ -32,7 +25,7 @@
         <input type="password" id="password" name="password" required class="form-control" placeholder="Enter your password">
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" data-idle-label="Sign In">
         Sign In
       </button>
     </form>
@@ -46,4 +39,3 @@
 </div>
 
 {% endblock %}
-

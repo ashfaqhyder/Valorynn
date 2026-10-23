@@ -2,13 +2,15 @@
  * Valorynn Landing Page - JavaScript
  * Handles animations, theme toggling, and interactivity
  */
+const landingLoaderStartedAt = performance.now();
+const landingLoaderMinimumDuration = 1400;
 
 // ===========================
 // Theme Management
 // ===========================
 class ThemeManager {
   constructor() {
-    this.theme = localStorage.getItem('valorynn-theme') || 'dark';
+    this.theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
     this.initialize();
   }
 
@@ -18,21 +20,29 @@ class ThemeManager {
   }
 
   attachThemeToggle() {
-    const toggle = document.querySelector('.theme-toggle');
-    if (toggle) {
+    document.querySelectorAll('.theme-toggle').forEach((toggle) => {
       toggle.addEventListener('click', () => this.toggleTheme());
-    }
+    });
   }
 
   toggleTheme() {
     this.theme = this.theme === 'dark' ? 'light' : 'dark';
     this.applyTheme(this.theme);
-    localStorage.setItem('valorynn-theme', this.theme);
+    try {
+      localStorage.setItem('valorynn-theme', this.theme);
+    } catch (error) {
+      console.warn('Theme changed for this page but could not be saved.', error);
+    }
   }
 
   applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     document.body.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-toggle').forEach((toggle) => {
+      const nextTheme = theme === 'dark' ? 'light' : 'dark';
+      toggle.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
+      toggle.setAttribute('aria-pressed', String(theme === 'light'));
+    });
   }
 }
 
@@ -114,6 +124,10 @@ class WorkflowAnimation {
   }
 
   animateWorkflow() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
     this.highlightStep();
     setInterval(() => {
       this.highlightStep();
@@ -164,8 +178,13 @@ class ScoreAnimation {
   }
 
   animateScore(scoreElement, scoreRing) {
-    scoreRing.classList.add('is-animated');
     const targetScore = parseInt(scoreElement.dataset.score);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      scoreElement.textContent = targetScore;
+      return;
+    }
+
+    scoreRing.classList.add('is-animated');
     let currentScore = 0;
     const duration = 2000;
     const increment = targetScore / (duration / 16);
@@ -233,7 +252,9 @@ class SmoothScroll {
         const target = document.querySelector(anchor.getAttribute('href'));
         if (target) {
           target.scrollIntoView({
-            behavior: 'smooth',
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+              ? 'auto'
+              : 'smooth',
             block: 'start'
           });
         }
@@ -389,51 +410,68 @@ class ParallaxEffect {
 // Initialize All Components
 // ===========================
 document.addEventListener('DOMContentLoaded', () => {
-  // Inject animations
-  injectRippleAnimation();
+  const loader = document.querySelector('.initial-page-loader');
+  try {
+    // Inject animations
+    injectRippleAnimation();
 
-  // Initialize components
-  new ThemeManager();
-  new ScrollAnimations();
-  new FAQAccordion();
-  new WorkflowAnimation();
-  new ScoreAnimation();
-  new FixSignalSimulator();
-  new SmoothScroll();
-  new MorphingButton();
-  new NavigationActive();
-  new LogoAnimation();
-  new ParallaxEffect();
+    // Initialize components
+    new ThemeManager();
+    new ScrollAnimations();
+    new FAQAccordion();
+    new WorkflowAnimation();
+    new ScoreAnimation();
+    new FixSignalSimulator();
+    new SmoothScroll();
+    new MorphingButton();
+    new NavigationActive();
+    new LogoAnimation();
+    new ParallaxEffect();
 
-  // Add animation styles to sections
-  const style = document.createElement('style');
-  style.textContent = `
-    .scroll-fade-in {
-      animation: fadeInUp 0.8s ease-out var(--reveal-delay, 0ms) both;
+    // Add animation styles to sections
+    const style = document.createElement('style');
+    style.textContent = `
+      .scroll-fade-in {
+        animation: fadeInUp 0.8s ease-out var(--reveal-delay, 0ms) both;
+      }
+
+      .nav-link.active {
+        color: var(--text-primary);
+        font-weight: 700;
+      }
+
+      .feature-card,
+      .step-card,
+      .audience-card,
+      .surface-node {
+        opacity: 0;
+      }
+
+      .feature-card.scroll-fade-in,
+      .step-card.scroll-fade-in,
+      .audience-card.scroll-fade-in,
+      .surface-node.scroll-fade-in {
+        animation: fadeInUp 0.6s ease-out var(--reveal-delay, 0ms) both;
+      }
+    `;
+    document.head.appendChild(style);
+
+    console.log('Valorynn Landing Page Initialized');
+  } finally {
+    if (loader) {
+      const dismissLoader = () => {
+        loader.classList.add('is-dismissing');
+        const completeDismissal = () => loader.classList.add('is-dismissed');
+        loader.addEventListener('animationend', completeDismissal, { once: true });
+        window.setTimeout(completeDismissal, 500);
+      };
+      const remainingDuration = Math.max(
+        0,
+        landingLoaderMinimumDuration - (performance.now() - landingLoaderStartedAt)
+      );
+      window.setTimeout(dismissLoader, remainingDuration);
     }
-
-    .nav-link.active {
-      color: var(--text-primary);
-      font-weight: 700;
-    }
-
-    .feature-card,
-    .step-card,
-    .audience-card,
-    .surface-node {
-      opacity: 0;
-    }
-
-    .feature-card.scroll-fade-in,
-    .step-card.scroll-fade-in,
-    .audience-card.scroll-fade-in,
-    .surface-node.scroll-fade-in {
-      animation: fadeInUp 0.6s ease-out var(--reveal-delay, 0ms) both;
-    }
-  `;
-  document.head.appendChild(style);
-
-  console.log('Valorynn Landing Page Initialized');
+  }
 });
 
 // ===========================

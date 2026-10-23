@@ -1,0 +1,19 @@
+{% macro brand_lockup(class_name="") -%}
+<a class="brand-lockup {{ class_name }}" href="/" aria-label="Valorynn home">
+  <img class="brand-symbol brand-symbol--dark-mode" src="/static/images/valorynn-logo.png" alt="" width="1295" height="1215">
+  <img class="brand-symbol brand-symbol--light-mode" src="/static/images/valorynn-logo-light.png" alt="" width="1295" height="1215">
+  <span class="brand-title">VALORYNN</span>
+</a>
+{%- endmacro %}
+
+{% macro brand_splash(label="Loading Valorynn", class_name="", initially_hidden=false) -%}
+<div class="brand-splash {{ class_name }}"{% if initially_hidden %} hidden{% endif %} role="status" aria-live="polite" aria-label="{{ label }}">
+  <div class="brand-splash-content">
+    <img class="brand-symbol brand-symbol--dark-mode brand-splash-symbol" src="/static/images/valorynn-logo.png" alt="" width="1295" height="1215">
+    <img class="brand-symbol brand-symbol--light-mode brand-splash-symbol" src="/static/images/valorynn-logo-light.png" alt="" width="1295" height="1215">
+    <span class="brand-title brand-splash-title">VALORYNN</span>
+    <span class="brand-splash-track" aria-hidden="true"><span></span></span>
+    <span class="brand-splash-message">{{ label }}</span>
+  </div>
+</div>
+{%- endmacro %}

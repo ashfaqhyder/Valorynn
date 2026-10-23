@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "partials/brand.html" import brand_lockup %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,31 +12,7 @@
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="nav-left">
-      <a href="/" class="nav-brand">
-        <div class="valorynn-logo-container">
-          <svg class="valorynn-logo" viewBox="0 0 100 100" width="28" height="28">
-            <g class="logo-element logo-element-1">
-              <line x1="50" y1="10" x2="50" y2="30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </g>
-            <g class="logo-element logo-element-2">
-              <line x1="70" y1="30" x2="85" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </g>
-            <g class="logo-element logo-element-3">
-              <line x1="30" y1="30" x2="15" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </g>
-            <g class="logo-element logo-element-4">
-              <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
-            </g>
-            <g class="logo-element logo-element-5">
-              <line x1="50" y1="70" x2="50" y2="90" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </g>
-            <g class="logo-element logo-element-6">
-              <path d="M 40 50 L 50 60 L 60 50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </g>
-          </svg>
-        </div>
-        <span class="nav-wordmark">VALORYNN</span>
-      </a>
+      {{ brand_lockup("nav-brand") }}
       {% if user %}
       <div class="nav-user">
         <span>{{ user.name }}</span>
@@ -54,7 +31,7 @@
     </div>
 
     <div class="nav-right">
-      <button class="theme-toggle" aria-label="Toggle theme">
+      <button class="theme-toggle" aria-label="Switch to light mode">
         <svg class="theme-icon-light" viewBox="0 0 24 24" width="20" height="20">
           <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
           <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -66,7 +43,7 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20" style="display: none;">
+        <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20">
           <path d="M 21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>

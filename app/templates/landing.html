@@ -1,41 +1,22 @@
 <!DOCTYPE html>
+{% from "partials/brand.html" import brand_lockup %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Valorynn — Application security, made understandable. Identify vulnerabilities, understand impact, prioritize remediation, verify improvements.">
     <title>Valorynn — Know what makes your application vulnerable</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" type="image/png" href="/static/images/valorynn-logo.png">
+    <script src="/static/theme-init.js"></script>
+    <link rel="stylesheet" href="/static/styles.css" data-app-stylesheet>
 </head>
 <body class="landing-page" data-theme="dark">
+    {% include "partials/loading.html" %}
+    <noscript><style>.initial-page-loader { display: none !important; }</style></noscript>
     <!-- Navigation Bar -->
     <nav class="navbar landing-nav">
         <div class="nav-left">
-            <a href="/" class="nav-brand">
-                <div class="valorynn-logo-container">
-                    <svg class="valorynn-logo" viewBox="0 0 100 100" width="28" height="28">
-                        <g class="logo-element logo-element-1">
-                            <line x1="50" y1="10" x2="50" y2="30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                        <g class="logo-element logo-element-2">
-                            <line x1="70" y1="30" x2="85" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                        <g class="logo-element logo-element-3">
-                            <line x1="30" y1="30" x2="15" y2="45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                        <g class="logo-element logo-element-4">
-                            <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
-                        </g>
-                        <g class="logo-element logo-element-5">
-                            <line x1="50" y1="70" x2="50" y2="90" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                        <g class="logo-element logo-element-6">
-                            <path d="M 40 50 L 50 60 L 60 50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </g>
-                    </svg>
-                </div>
-                <span class="nav-wordmark">VALORYNN</span>
-            </a>
+            {{ brand_lockup("nav-brand") }}
         </div>
 
         <div class="nav-center">
@@ -46,8 +27,8 @@
         </div>
 
         <div class="nav-right">
-            <button class="theme-toggle" aria-label="Toggle theme">
-                <svg class="theme-icon-light" viewBox="0 0 24 24" width="20" height="20">
+            <button class="theme-toggle" type="button" aria-label="Switch to light mode">
+                <svg class="theme-icon-light" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
                     <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
                     <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -58,7 +39,7 @@
                     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20" style="display: none;">
+                <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
                     <path d="M 21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
@@ -500,7 +481,7 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-brand">
-                <div class="footer-logo">VALORYNN</div>
+                {{ brand_lockup("footer-brand-lockup") }}
                 <p class="footer-tagline">Application security, made understandable.</p>
             </div>
 
@@ -514,11 +495,39 @@
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2024 Valorynn. All rights reserved.</p>
+                <p>&copy; Valorynn. Developed by ASHFAQ HYDER C S.</p>
             </div>
         </div>
     </footer>
 
-    <script src="/static/landing.js"></script>
+    <section class="developer-credit" aria-label="Developer credit">
+        <div class="developer-credit-content">
+            <img
+                class="developer-credit-logo"
+                src="/static/images/ashfaq-hyder-logo.png"
+                alt="Stylized AH logo for ASHFAQ HYDER C S"
+                width="52"
+                height="52"
+            >
+            <div class="developer-credit-copy">
+                <p class="developer-credit-label">Designed &amp; Developed by</p>
+                <a
+                    class="developer-credit-link"
+                    href="https://ashfaqhydercs.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Visit ASHFAQ HYDER C S's website (opens in a new tab)"
+                >
+                    <span>ASHFAQ HYDER C S</span>
+                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+                        <path d="M5 3h8v8M13 3 6 10M11 9v4H3V5h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script src="/static/landing.js" defer></script>
+    <script src="/static/page.js" defer></script>
 </body>
 </html>

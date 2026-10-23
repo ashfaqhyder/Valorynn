@@ -29,12 +29,12 @@ def english_description(cve: dict) -> str:
 
 def cvss_severity(cve: dict) -> str | None:
     metrics = cve.get("metrics", {})
-    for key in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
+    for key in ("cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
         values = metrics.get(key, [])
         if values:
             severity = values[0].get("cvssData", {}).get("baseSeverity") or values[0].get("baseSeverity")
-            if severity in SEVERITIES:
-                return severity
+            if isinstance(severity, str) and severity.upper() in SEVERITIES:
+                return severity.upper()
     return None
 
 

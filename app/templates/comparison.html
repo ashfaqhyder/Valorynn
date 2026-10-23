@@ -54,7 +54,7 @@
 
   <div class="card stat-card" style="text-align: center; justify-content: center; flex-direction: column;">
     <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Score Delta</div>
-    <div class="stat-value" style="font-size: 2.5rem; margin-top: 0.5rem; color: {% if score_change > 0 %}var(--risk-low){% elif score_change < 0 %}var(--risk-critical){% else %}var(--text-muted){% endif %};">
+    <div class="stat-value score-delta {% if score_change > 0 %}score-delta-positive{% elif score_change < 0 %}score-delta-negative{% else %}score-delta-neutral{% endif %}" style="font-size: 2.5rem; margin-top: 0.5rem;">
       {% if score_change > 0 %}+{% endif %}{{ score_change }} pts
     </div>
     <div style="font-size: 0.85rem; color: var(--text-subtle); margin-top: 0.25rem;">

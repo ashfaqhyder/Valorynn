@@ -1,6 +1,8 @@
 import socket
 import ssl
+from io import BytesIO
 from unittest.mock import MagicMock, Mock
+from zipfile import ZipFile
 
 import httpcore
 import httpx
@@ -370,3 +372,54 @@ def test_inspect_source_oversized_archive():
     findings = inspect_source(huge_bytes, "huge.zip")
     assert len(findings) == 1
     assert "not inspected" in findings[0]["title"]
+
+
+def test_inspect_source_reports_skipped_entries_as_incomplete():
+    archive_bytes = BytesIO()
+    with ZipFile(archive_bytes, "w") as archive:
+        archive.writestr("large-source.txt", "x" * 500_001)
+
+    findings = inspect_source(archive_bytes.getvalue(), "source.zip")
+
+    coverage = next(
+        item for item in findings if item["category"] == "Assessment coverage"
+    )
+    assert coverage["title"] == "Source archive content not fully inspected"
+    assert "1 archive entr" in coverage["evidence"]
+
+
+def test_inspect_source_does_not_mark_fully_inspected_archive_incomplete():
+    archive_bytes = BytesIO()
+    with ZipFile(archive_bytes, "w") as archive:
+        archive.writestr("app.py", "def home():\n    return 'hello'\n")
+
+    findings = inspect_source(archive_bytes.getvalue(), "source.zip")
+
+    assert not any(item["category"] == "Assessment coverage" for item in findings)
+
+
+def test_inspect_source_reports_combined_text_limit_as_incomplete():
+    archive_bytes = BytesIO()
+    with ZipFile(archive_bytes, "w") as archive:
+        for index in range(5):
+            archive.writestr(f"part-{index}.txt", "x" * 450_000)
+
+    findings = inspect_source(archive_bytes.getvalue(), "source.zip")
+
+    coverage = next(
+        item for item in findings if item["category"] == "Assessment coverage"
+    )
+    assert "2,000,000-character inspection limit" in coverage["evidence"]
+
+
+def test_inspect_source_reports_lossy_text_decoding_as_incomplete():
+    archive_bytes = BytesIO()
+    with ZipFile(archive_bytes, "w") as archive:
+        archive.writestr("app.py", b"print('safe')\xff")
+
+    findings = inspect_source(archive_bytes.getvalue(), "source.zip")
+
+    coverage = next(
+        item for item in findings if item["category"] == "Assessment coverage"
+    )
+    assert "invalid UTF-8 bytes" in coverage["evidence"]

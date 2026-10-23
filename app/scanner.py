@@ -260,14 +260,22 @@ def inspect_source(source: bytes, filename: str) -> list[dict]:
 
     text_parts: list[str] = []
     manifest_dependencies: list[str] = []
+    skipped_entries = 0
+    lossy_decodes = 0
     for entry in entries:
         if entry.file_size > 500_000 or ".." in entry.filename.replace("\\", "/").split("/"):
+            skipped_entries += 1
             continue
         try:
             raw = archive.read(entry)[:500_000]
-            content = raw.decode("utf-8", errors="ignore")
-        except (OSError, RuntimeError):
+        except (OSError, RuntimeError, zipfile.BadZipFile):
+            skipped_entries += 1
             continue
+        try:
+            content = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            content = raw.decode("utf-8", errors="ignore")
+            lossy_decodes += 1
         text_parts.append(f"\n/* {entry.filename} */\n{content}")
         if entry.filename.endswith("package.json"):
             try:
@@ -275,7 +283,33 @@ def inspect_source(source: bytes, filename: str) -> list[dict]:
                 manifest_dependencies.extend(list(package.get("dependencies", {}).keys()))
             except json.JSONDecodeError:
                 pass
-    corpus = "".join(text_parts)[:2_000_000]
+    complete_corpus = "".join(text_parts)
+    corpus = complete_corpus[:2_000_000]
+    if skipped_entries or lossy_decodes or len(complete_corpus) > len(corpus):
+        omissions = []
+        if skipped_entries:
+            noun = "entry" if skipped_entries == 1 else "entries"
+            verb = "was" if skipped_entries == 1 else "were"
+            omissions.append(f"{skipped_entries} archive {noun} {verb} skipped")
+        if lossy_decodes:
+            noun = "entry" if lossy_decodes == 1 else "entries"
+            omissions.append(
+                f"{lossy_decodes} {noun} contained invalid UTF-8 bytes that were omitted during decoding"
+            )
+        if len(complete_corpus) > len(corpus):
+            omissions.append("combined source text exceeded the 2,000,000-character inspection limit")
+        findings.append(
+            _finding(
+                "Assessment coverage",
+                "Source archive content not fully inspected",
+                "info",
+                "; ".join(omissions) + ".",
+                "Source-review checks ran only on the content that could be safely inspected; omitted content remains unknown.",
+                "Review the omitted archive content separately or create a smaller, focused source archive and run another review.",
+                "Easy",
+                "source-review",
+            )
+        )
     for pattern, title in SECRET_PATTERNS:
         match = pattern.search(corpus)
         if match:

@@ -13,7 +13,7 @@
   </div>
 
   <div class="card">
-    <form method="post" action="/applications" enctype="multipart/form-data">
+    <form method="post" action="/applications" enctype="multipart/form-data" data-pending-label="Saving application…">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
       <div class="form-group">
@@ -39,7 +39,7 @@
       </div>
 
       <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-        <button type="submit" class="btn btn-primary" style="flex: 1;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;" data-idle-label="Save Target & Continue →">
           Save Target & Continue →
         </button>
         <a href="/dashboard" class="btn btn-secondary">Cancel</a>

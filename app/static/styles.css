@@ -1068,3 +1068,38 @@ a { color: var(--text-primary); text-decoration: none; transition: color var(--t
   .navbar, .footer, .cta-buttons, .morph-transition { display: none; }
   body { background-color: white; color: black; }
 }
+
+
+/* Scan comparison selects — keep native option menus readable in both themes. */
+.comparison-select {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color-hover);
+  color-scheme: dark;
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+
+.comparison-select option,
+.comparison-select optgroup {
+  color: #ffffff;
+  background-color: #111111;
+}
+
+.comparison-select:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+[data-theme="light"] .comparison-select {
+  color: #111111;
+  background-color: #ffffff;
+  color-scheme: light;
+}
+
+[data-theme="light"] .comparison-select option,
+[data-theme="light"] .comparison-select optgroup {
+  color: #111111;
+  background-color: #ffffff;
+}
